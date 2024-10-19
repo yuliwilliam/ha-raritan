@@ -1,6 +1,7 @@
 import asyncio
 
 from .snmp import SNMPManager
+from .const import _LOGGER
 
 
 class RaritanPDUOutlet:
@@ -23,25 +24,12 @@ class RaritanPDUOutlet:
             "watt_hours": 0,
         }
 
-        # self.current = 0
-        # self.max_current = 0
-        # self.voltage = 0
-        # self.active_power = 0
-        # self.apparent_power = 0
-        # self.power_factor = 0
-        # self.current_upper_warning = 0
-        # self.current_upper_critical = 0
-        # self.current_lower_warning = 0
-        # self.current_lower_critical = 0
-        # self.current_rating = 0
-        # self.watt_hours = 0
-
     async def initialize(self):
+        _LOGGER.info(f"Initializing RaritanPDUOutlet {self.index}")
         initialize_tasks = [self.update_label()]
         for data_name in self.data.keys():
             initialize_tasks.append(self.update_data(data_name))
         await asyncio.gather(*initialize_tasks)
-
 
     async def update_data(self, data_name):
         if data_name not in self.data:
@@ -93,11 +81,14 @@ class RaritanPDU:
             return False
 
     async def initialize(self):
+        _LOGGER.info("Initializing RaritanPDU")
         desc = await self.snmp_manager.snmp_get("SNMPv2-MIB", "sysDescr", 0)
         name = await self.snmp_manager.snmp_get("SNMPv2-MIB", "sysName", 0)
         self.name = str(desc).split(" - ")[0] + " " + str(name)
 
         outlet_count = await self.snmp_manager.snmp_get("PDU-MIB", "outletCount", 0)
+        _LOGGER.info(f"Initialized RaritanPDU {self.name} - {outlet_count} outlets")
+
         initialize_tasks = []
         for i in range(outlet_count):
             outlet = RaritanPDUOutlet(self.snmp_manager, i + 1)  # Outlet index starts from 1

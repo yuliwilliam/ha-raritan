@@ -48,6 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             sensor_description.key = f"{outlet.label} {sensor_description.key}"
             entities.append(RaritanPduOutletSensor(outlet, sensor_description))
 
+    _LOGGER.info(f"Discovered {len(entities)} sensors")
     async_add_entities(entities)
 
 
