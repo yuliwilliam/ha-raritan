@@ -44,7 +44,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities = []
     for outlet in pdu.outlets:
         for sensor_description in SENSOR_DESCRIPTIONS:
-            sensor_description.key = f"{outlet.label} {sensor_description.key}"
             entities.append(RaritanPduOutletSensor(outlet, sensor_description))
 
     _LOGGER.info(f"Discovered {len(entities)} sensors")
@@ -58,12 +57,11 @@ class RaritanPduOutletSensor(SensorEntity):
         """Initialize the sensor."""
         self._outlet = outlet
         self.entity_description = description
-        self._state = None
+        self._attr_unique_id = f"{outlet.label}_{description.key}"
 
     async def async_update(self):
         try:
-            data_name = self.entity_description.key.split(" ")[1]
-            await self._outlet.update_data(data_name)
-            self._attr_native_value = self._outlet.get_data(data_name)
+            await self._outlet.update_data(self.entity_description.key)
+            self._attr_native_value = self._outlet.get_data(self.entity_description.key)
         except Exception as e:
             _LOGGER.error("Failed to update SNMP data: %s", e)
