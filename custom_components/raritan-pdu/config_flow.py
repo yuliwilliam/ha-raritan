@@ -28,7 +28,7 @@ class RaritanPDUConfigFlow(ConfigFlow, domain=DOMAIN):
                     raise InvalidHost
                 else:
                     await pdu.initialize()
-                    await self.async_set_unique_id(pdu.key)
+                    await self.async_set_unique_id(pdu.unique_id)
                     self._abort_if_unique_id_configured()
                     return self.async_create_entry(title=pdu.name, data=user_input)
             except InvalidHost:
