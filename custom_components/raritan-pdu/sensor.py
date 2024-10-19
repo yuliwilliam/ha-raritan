@@ -74,17 +74,10 @@ class RaritanPduOutletSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = coordinator.device_info
 
         self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
-        self._attr_name = f"{self.coordinator.data[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
+        self._attr_name = f"{self.coordinator.get_data_from_pdu()[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.coordinator.data[self.outlet_index][self.entity_description.key]
         self.async_write_ha_state()
-
-    # async def async_update(self):
-    #     try:
-    #         await self._outlet.update_data(self.entity_description.key)
-    #         self._attr_native_value = self._outlet.get_data(self.entity_description.key)
-    #     except Exception as e:
-    #         _LOGGER.error("Failed to update SNMP data: %s", e)

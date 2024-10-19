@@ -58,27 +58,6 @@ class RaritanPDUOutlet:
         if energy_support:
             self.data["watt_hours"] = 0
 
-    # async def initialize(self):
-    #     _LOGGER.info(f"Initializing RaritanPDUOutlet {self.index}")
-    #     initialize_tasks = [self.update_label()]
-    #     for data_name in self.data.keys():
-    #         initialize_tasks.append(self.update_data(data_name))
-    #     await asyncio.gather(*initialize_tasks)
-    #
-    # async def update_data(self, data_name):
-    #     if data_name not in self.data:
-    #         return
-    #     mib_object_name = f"outlet{data_name.title().replace('_', '')}"
-    #     result = await self.snmp_manager.snmp_get(["PDU-MIB", mib_object_name, self.index])
-    #     if result is not None:
-    #         self.data[data_name] = result
-    #
-    #
-    # def get_data(self, data_name):
-    #     if data_name not in self.data:
-    #         return None
-    #     return self.data[data_name]
-
 
 class RaritanPDU:
     def __init__(self, host: str, port: int, community: str) -> None:
@@ -138,11 +117,12 @@ class RaritanPDU:
         i = 0
         for outlet in self.outlets:
             for data_name in outlet.data.keys():
-                outlet.data[data_name] = results[i] # Update each data field in the outlet using the corresponding result
+                outlet.data[data_name] = results[
+                    i]  # Update each data field in the outlet using the corresponding result
                 i += 1
 
-    # def get_outlet_by_index(self, index: int) -> RaritanPDUOutlet:
-    #     return self.outlets[index - 1]  # Outlet index starts from 1
+    def get_outlet_by_index(self, index: int) -> RaritanPDUOutlet:
+        return self.outlets[index - 1]  # Outlet index starts from 1
 
     def get_data(self) -> dict:
         data = {}
