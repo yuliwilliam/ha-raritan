@@ -17,9 +17,6 @@ class SNMPManager:
 
         self.modules_loaded = False
 
-    async def load_mib_modules_async(self):
-        await asyncio.to_thread(self.load_mib_modules)
-
     def load_mib_modules(self):
         if self.modules_loaded:
             return
@@ -37,10 +34,13 @@ class SNMPManager:
     async def snmp_get(self, *args: any, **kwargs: any) -> any:
         _LOGGER.debug(f"SNMP get: {self.host}:{self.port} {self.community} {args}")
 
-        await self.load_mib_modules_async()
+        # https://developers.home-assistant.io/docs/asyncio_blocking_operations/#open
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self.load_mib_modules)  # load modules if not already
+        engine = await loop.run_in_executor(None, SnmpEngine)
 
         errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
-            SnmpEngine(),
+            engine,
             CommunityData(self.community),
             await UdpTransportTarget.create((self.host, self.port), timeout=5, retries=3),
             ContextData(),

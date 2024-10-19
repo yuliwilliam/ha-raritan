@@ -131,7 +131,7 @@ class RaritanPDU:
 
         initialize_tasks = []
         for i in range(outlet_count):
-            outlet = RaritanPDUOutlet(self.snmp_manager, i + 1)  # Outlet index starts from 1
+            outlet = RaritanPDUOutlet(self.snmp_manager, i + 1, self.energy_support)  # Outlet index starts from 1
             initialize_tasks.append(outlet.initialize())  # Create task for initialization
             self.outlets.append(outlet)
 
