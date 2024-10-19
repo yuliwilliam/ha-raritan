@@ -1,8 +1,11 @@
+import os
+from pathlib import Path
 from pysnmp.entity.engine import SnmpEngine
 from pysnmp.hlapi.v3arch import get_cmd, CommunityData, UdpTransportTarget, ContextData, ObjectIdentity, ObjectType
 from pysnmp.smi import builder, view, compiler
 
-from .const import _LOGGER
+from .const import _LOGGER, MIB_SOURCE_DIR
+
 
 class SNMPManager:
     def __init__(self, host, port, community) -> None:
@@ -11,15 +14,12 @@ class SNMPManager:
         self.port = port
         self.community = community
 
-        # snmpEngine = SnmpEngine()
-        # mibBuilder = snmpEngine.get_mib_builder()
-        # self.snmpEngine = snmpEngine
-
-        mib_source_dir = './mibs'
+        if not Path(MIB_SOURCE_DIR).is_dir():
+            _LOGGER.error(f"mibs directory does not exist: {MIB_SOURCE_DIR}, cwd: {os.getcwd()}")
 
         mibBuilder = builder.MibBuilder()
-        compiler.add_mib_compiler(mibBuilder, sources=[mib_source_dir])
-        mibBuilder.add_mib_sources(builder.DirMibSource(mib_source_dir))
+        compiler.add_mib_compiler(mibBuilder, sources=[MIB_SOURCE_DIR])
+        mibBuilder.add_mib_sources(builder.DirMibSource(MIB_SOURCE_DIR))
         mibBuilder.loadModules('PDU-MIB', 'SNMPv2-SMI', 'INET-ADDRESS-MIB', 'SNMPv2-TC', 'SNMPv2-CONF')
         mibViewController = view.MibViewController(mibBuilder)
 
@@ -35,7 +35,8 @@ class SNMPManager:
             ObjectType(ObjectIdentity(*args, **kwargs))
         )
 
-        _LOGGER.debug(f"SNMP get: {self.host}:{self.port} {self.community} {args}", errorIndication, errorStatus, errorIndex, varBinds)
+        _LOGGER.debug(f"SNMP get: {self.host}:{self.port} {self.community} {args}", errorIndication, errorStatus,
+                      errorIndex, varBinds)
 
         if errorIndication:
             _LOGGER.error("SNMP error: %s", errorIndication)
