@@ -1,9 +1,8 @@
 import voluptuous as vol
 from homeassistant import exceptions
-from homeassistant.components.livisi.const import CONF_HOST
 from homeassistant.components.snmp.const import CONF_COMMUNITY
 from homeassistant.config_entries import ConfigFlow
-from homeassistant.const import CONF_PORT
+from homeassistant.const import CONF_PORT, CONF_HOST
 
 from .raritan_pdu import RaritanPDU
 from .const import _LOGGER, DOMAIN

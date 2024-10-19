@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "config_flow": true,
   "requirements": [
-    "pysnmp==7.1.8"
+    "pysnmp==7.1.8",
+    "pysmi==1.5.4"
   ],
   "codeowners": [
     "@yuliwilliam"
