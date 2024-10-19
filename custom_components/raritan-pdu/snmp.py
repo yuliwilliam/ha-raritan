@@ -1,4 +1,5 @@
-from pysnmp.hlapi.v3arch.asyncio import *
+from pysnmp.entity.engine import SnmpEngine
+from pysnmp.hlapi.v3arch import get_cmd, CommunityData, UdpTransportTarget, ContextData, ObjectIdentity, ObjectType
 from pysnmp.smi import builder, view, compiler
 
 from .const import _LOGGER
