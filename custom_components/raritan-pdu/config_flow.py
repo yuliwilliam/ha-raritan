@@ -1,11 +1,10 @@
 import voluptuous as vol
 from homeassistant import exceptions
-from homeassistant.components.snmp.const import CONF_COMMUNITY
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PORT, CONF_HOST
 
 from .raritan_pdu import RaritanPDU
-from .const import _LOGGER, DOMAIN
+from .const import _LOGGER, DOMAIN, CONF_COMMUNITY
 
 DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,

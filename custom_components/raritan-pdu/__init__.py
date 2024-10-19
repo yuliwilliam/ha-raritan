@@ -1,12 +1,11 @@
 """Raritan PDU Integration."""
-from homeassistant.components.snmp.const import CONF_COMMUNITY
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .raritan_pdu import RaritanPDU
-from .const import _LOGGER, DOMAIN, PLATFORMS
+from .const import _LOGGER, DOMAIN, PLATFORMS, CONF_COMMUNITY
 
 
 
