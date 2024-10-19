@@ -63,6 +63,10 @@ class RaritanPDUOutlet:
         if energy_support:
             self.sensor_data["watt_hours"] = 0
 
+    def initialize_energy_delivered(self, initial_value: float):
+        self.last_sensor_data_update_timestamp = time.time()
+        self.energy_delivered = initial_value
+
     def update_energy_delivered(self, current_sensor_data_update_timestamp):
         # not enough data to estimate
         if self.last_sensor_data_update_timestamp == 0:
