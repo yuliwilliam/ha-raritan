@@ -1,0 +1,13 @@
+{
+  "domain": "raritan_pdu",
+  "name": "Raritan PDU SNMP Integration",
+  "version": "0.1.0",
+  "config_flow": true,
+  "requirements": [
+    "pysnmp"
+  ],
+  "codeowners": [
+    "@yuliwilliam"
+  ],
+  "iot_class": "local_polling"
+}
