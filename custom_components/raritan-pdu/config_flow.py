@@ -4,9 +4,8 @@ from homeassistant.components.livisi.const import CONF_HOST
 from homeassistant.components.snmp.const import CONF_COMMUNITY
 from homeassistant.const import CONF_PORT
 
-from . import DOMAIN
 from raritan_pdu import RaritanPDU
-from .const import _LOGGER
+from .const import _LOGGER, DOMAIN
 
 DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,
