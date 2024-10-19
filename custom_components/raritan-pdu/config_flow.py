@@ -4,12 +4,13 @@ from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PORT, CONF_HOST
 
 from .raritan_pdu import RaritanPDU
-from .const import _LOGGER, DOMAIN, CONF_COMMUNITY
+from .const import _LOGGER, DOMAIN, CONF_COMMUNITY, CONF_POLLING_INTERVAL
 
 DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,
     vol.Optional(CONF_PORT, default=161): int,
     vol.Optional(CONF_COMMUNITY, default="public"): str,
+    vol.Optional(CONF_POLLING_INTERVAL, default=2): int,
 })
 
 

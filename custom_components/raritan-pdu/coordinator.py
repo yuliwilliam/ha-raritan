@@ -14,13 +14,14 @@ class RaritanPDUCoordinator(DataUpdateCoordinator):
             self,
             hass: HomeAssistant,
             pdu: RaritanPDU,
+            polling_interval: int,
     ) -> None:
         """Initialise a custom coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=UPDATE_INTERVAL),
+            update_interval=timedelta(seconds=polling_interval),
         )
         self.pdu: RaritanPDU = pdu
         self.device_id = self.pdu.unique_id

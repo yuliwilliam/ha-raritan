@@ -9,10 +9,11 @@ DOMAIN: Final = "raritan_pdu"
 MANUFACTURER: Final = "Raritan"
 
 CONF_COMMUNITY: Final = "community"
+# CONF_READ_COMMUNITY: Final = "read community"
+# CONF_WRITE_COMMUNITY: Final = "write community"
+CONF_POLLING_INTERVAL: Final = "polling interval(seconds)"
 
 MIB_SOURCE_DIR: Final = f"./custom_components/{DOMAIN}/mibs"
-
-UPDATE_INTERVAL: float = 1.0
 
 # PLATFORMS = [Platform.SENSOR, Platform.SWITCH]
 PLATFORMS = [Platform.SENSOR]

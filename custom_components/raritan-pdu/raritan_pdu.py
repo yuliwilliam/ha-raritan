@@ -96,11 +96,7 @@ class RaritanPDU:
         """Test if we can authenticate with the host."""
         try:
             result = await self.snmp_manager.snmp_get(["SNMPv2-MIB", "sysDescr", 0])
-            is_valid = str(result).startswith("Raritan Dominion PX")
-            if is_valid:
-                await self.update_data()
-
-            return is_valid
+            return str(result).startswith("Raritan Dominion PX")
         except Exception:
             return False
 
