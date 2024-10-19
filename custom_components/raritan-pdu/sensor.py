@@ -5,7 +5,6 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN, _LOGGER
 from .raritan_pdu import RaritanPDU, RaritanPDUOutlet
 
-
 SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="current",
@@ -52,7 +51,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities(entities)
 
 
-class RaritanPduOutletSensor( SensorEntity):
+class RaritanPduOutletSensor(SensorEntity):
     """Representation of an SNMP sensor for Raritan PDU."""
 
     def __init__(self, outlet: RaritanPDUOutlet, description: SensorEntityDescription):
@@ -65,6 +64,6 @@ class RaritanPduOutletSensor( SensorEntity):
         try:
             data_name = self.entity_description.key.split(" ")[1]
             await self._outlet.update_data(data_name)
-            self._state = self._outlet.get_data(data_name)
+            self._attr_native_value = self._outlet.get_data(data_name)
         except Exception as e:
             _LOGGER.error("Failed to update SNMP data: %s", e)
