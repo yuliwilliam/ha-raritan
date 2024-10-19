@@ -1,7 +1,8 @@
 import voluptuous as vol
-from homeassistant import config_entries, exceptions
+from homeassistant import exceptions
 from homeassistant.components.livisi.const import CONF_HOST
 from homeassistant.components.snmp.const import CONF_COMMUNITY
+from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PORT
 
 from raritan_pdu import RaritanPDU
@@ -14,7 +15,7 @@ DATA_SCHEMA = vol.Schema({
 })
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class RaritanPDUConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
