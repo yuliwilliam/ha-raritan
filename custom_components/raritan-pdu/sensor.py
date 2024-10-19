@@ -27,7 +27,7 @@ SENSOR_DESCRIPTIONS = (
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:lightning-bolt",
+        icon="mdi:flash",
     ),
     SensorEntityDescription(
         key="power_factor",

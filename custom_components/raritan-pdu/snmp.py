@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 from pysnmp.entity.engine import SnmpEngine
@@ -14,6 +15,15 @@ class SNMPManager:
         self.port = port
         self.community = community
 
+        self.modules_loaded = False
+
+    async def load_mib_modules_async(self):
+        await asyncio.to_thread(self.load_mib_modules)
+
+    def load_mib_modules(self):
+        if self.modules_loaded:
+            return
+
         if not Path(MIB_SOURCE_DIR).is_dir():
             _LOGGER.error(f"mibs directory does not exist: {MIB_SOURCE_DIR}, cwd: {os.getcwd()}")
 
@@ -22,11 +32,13 @@ class SNMPManager:
         mibBuilder.add_mib_sources(builder.DirMibSource(MIB_SOURCE_DIR))
         mibBuilder.loadModules('PDU-MIB', 'SNMPv2-SMI', 'INET-ADDRESS-MIB', 'SNMPv2-TC', 'SNMPv2-CONF')
         mibViewController = view.MibViewController(mibBuilder)
+        self.modules_loaded = True
 
     async def snmp_get(self, *args: any, **kwargs: any) -> any:
         _LOGGER.debug(f"SNMP get: {self.host}:{self.port} {self.community} {args}")
 
-        """Perform SNMP GET request."""
+        await self.load_mib_modules_async()
+
         errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
             SnmpEngine(),
             CommunityData(self.community),
