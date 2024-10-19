@@ -1,4 +1,5 @@
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass, SensorEntityDescription
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass, SensorEntityDescription, \
+    RestoreSensor
 from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, UnitOfPower, PERCENTAGE, UnitOfEnergy
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -64,7 +65,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities(entities)
 
 
-class RaritanPduOutletSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
     """Representation of an SNMP sensor for Raritan PDU."""
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: SensorEntityDescription, outlet_index: str):
@@ -81,14 +82,13 @@ class RaritanPduOutletSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
     async def async_added_to_hass(self):
         """Restore the previous state when the entity is added to Home Assistant."""
-
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
 
         # For now, only need to restore energy delivered
         if last_state is not None and self.entity_description.key == "energy_delivered":
             # Restore the last known state
-            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(float(last_state.state))
+            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(last_state.state)
 
 
     @callback

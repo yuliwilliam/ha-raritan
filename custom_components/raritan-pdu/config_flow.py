@@ -10,7 +10,7 @@ DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,
     vol.Optional(CONF_PORT, default=161): int,
     vol.Optional(CONF_COMMUNITY, default="public"): str,
-    vol.Optional(CONF_POLLING_INTERVAL, default=2): int,
+    vol.Optional(CONF_POLLING_INTERVAL, default=5): int,
 })
 
 
