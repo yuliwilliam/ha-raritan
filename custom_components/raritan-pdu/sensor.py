@@ -12,6 +12,7 @@ SENSOR_DESCRIPTIONS = (
         key="current",
         device_class=SensorDeviceClass.CURRENT,
         native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
+        suggested_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
     ),
@@ -19,6 +20,7 @@ SENSOR_DESCRIPTIONS = (
         key="voltage",
         device_class=SensorDeviceClass.VOLTAGE,
         native_unit_of_measurement=UnitOfElectricPotential.MILLIVOLT,
+        suggested_unit_of_measurement=UnitOfElectricPotential.VOLT,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:sine-wave",
     ),
@@ -26,6 +28,7 @@ SENSOR_DESCRIPTIONS = (
         key="active_power",
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
+        suggested_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:flash",
     ),
@@ -71,6 +74,7 @@ class RaritanPduOutletSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = coordinator.device_info
 
         self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
+        self._attr_name = f"{self.coordinator.data[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
 
     @callback
     def _handle_coordinator_update(self) -> None:

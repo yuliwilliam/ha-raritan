@@ -18,7 +18,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("Failed to connect to Raritan PDU at %s", entry.data[CONF_HOST])
         raise ConfigEntryNotReady("Unable to connect")
 
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RaritanPDUCoordinator(hass, entry, pdu)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RaritanPDUCoordinator(hass, pdu)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

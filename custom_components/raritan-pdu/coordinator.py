@@ -13,7 +13,6 @@ class RaritanPDUCoordinator(DataUpdateCoordinator):
     def __init__(
             self,
             hass: HomeAssistant,
-            entry: ConfigEntry,
             pdu: RaritanPDU,
     ) -> None:
         """Initialise a custom coordinator."""
