@@ -33,9 +33,9 @@ class RaritanPDUConfigFlow(ConfigFlow, domain=DOMAIN):
                     return self.async_create_entry(title=pdu.name, data=user_input)
             except InvalidHost:
                 errors["base"] = "invalid_host"
-            except Exception:  # pylint: disable=broad-except
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
+            except Exception as e:  # pylint: disable=broad-except
+                _LOGGER.error(f"Unexpected exception occurred: {str(e)}")
+                errors["base"] = f"Unexpected exception occurred: {str(e)}"
 
         return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
 
