@@ -39,13 +39,14 @@ SENSOR_DESCRIPTIONS = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:angle-acute",
     ),
-    # SensorEntityDescription(
-    #     key="watt_hours",
-    #     device_class=SensorDeviceClass.ENERGY,
-    #     native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
-    #     state_class=SensorStateClass.TOTAL_INCREASING,
-    #     icon="mdi:lightning-bolt",
-    # )
+    SensorEntityDescription(
+        key="energy_delivered",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        suggested_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL,
+        icon="mdi:lightning-bolt",
+    )
 )
 
 
