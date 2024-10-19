@@ -1,12 +1,11 @@
 from datetime import timedelta
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .raritan_pdu import RaritanPDU
-from .const import _LOGGER, DOMAIN, MANUFACTURER, UPDATE_INTERVAL
+from .const import _LOGGER, DOMAIN, MANUFACTURER
 
 
 class RaritanPDUCoordinator(DataUpdateCoordinator):
