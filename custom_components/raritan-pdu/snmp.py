@@ -15,7 +15,7 @@ class SNMPManager:
         # mibBuilder = snmpEngine.get_mib_builder()
         # self.snmpEngine = snmpEngine
 
-        mib_source_dir = '../../mibs'
+        mib_source_dir = './mibs'
 
         mibBuilder = builder.MibBuilder()
         compiler.add_mib_compiler(mibBuilder, sources=[mib_source_dir])
