@@ -88,7 +88,7 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
         # For now, only need to restore energy delivered
         if last_state is not None and self.entity_description.key == "energy_delivered":
             # Restore the last known state
-            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(last_state.state)
+            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(float(last_state.state))
 
 
     @callback
