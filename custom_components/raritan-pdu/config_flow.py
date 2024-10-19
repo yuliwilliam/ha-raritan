@@ -18,7 +18,9 @@ class RaritanPDUConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors = {}
         if user_input is not None:
-            self._async_abort_entries_match(user_input[CONF_HOST], user_input[CONF_PORT], user_input[CONF_COMMUNITY])
+            self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST],
+                                             CONF_PORT: user_input[CONF_PORT],
+                                             CONF_COMMUNITY: user_input[CONF_COMMUNITY]})
 
             try:
                 pdu = RaritanPDU(user_input[CONF_HOST], user_input[CONF_PORT], user_input[CONF_COMMUNITY])
