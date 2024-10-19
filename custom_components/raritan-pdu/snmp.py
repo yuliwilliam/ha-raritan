@@ -1,7 +1,7 @@
 from pysnmp.hlapi.v3arch.asyncio import *
 from pysnmp.smi import builder, view, compiler
 
-from const import _LOGGER
+from .const import _LOGGER
 
 class SNMPManager:
     def __init__(self, host, port, community) -> None:

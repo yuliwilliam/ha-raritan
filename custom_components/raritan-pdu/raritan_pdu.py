@@ -1,6 +1,6 @@
 import asyncio
 
-from snmp import SNMPManager
+from .snmp import SNMPManager
 
 
 class RaritanPDUOutlet:

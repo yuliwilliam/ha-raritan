@@ -5,7 +5,7 @@ from homeassistant.components.snmp.const import CONF_COMMUNITY
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PORT
 
-from raritan_pdu import RaritanPDU
+from .raritan_pdu import RaritanPDU
 from .const import _LOGGER, DOMAIN
 
 DATA_SCHEMA = vol.Schema({

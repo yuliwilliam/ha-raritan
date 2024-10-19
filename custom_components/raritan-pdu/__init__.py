@@ -5,8 +5,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from raritan_pdu import RaritanPDU
-from const import _LOGGER, DOMAIN, PLATFORMS
+from .raritan_pdu import RaritanPDU
+from .const import _LOGGER, DOMAIN, PLATFORMS
 
 
 

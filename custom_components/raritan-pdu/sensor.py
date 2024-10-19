@@ -3,8 +3,7 @@ from homeassistant.const import UnitOfElectricCurrent, UnitOfEnergy, UnitOfElect
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN, _LOGGER
-
-from raritan_pdu import RaritanPDU, RaritanPDUOutlet
+from .raritan_pdu import RaritanPDU, RaritanPDUOutlet
 
 
 SENSOR_DESCRIPTIONS = (
