@@ -1,0 +1,6 @@
+{
+  "name": "Raritan PDU Integration",
+  "domains": ["raritan_pdu"],
+  "iot_class": ["local_polling"],
+  "render_readme": true
+}
