@@ -7,4 +7,5 @@ _LOGGER = logging.getLogger(__package__)
 DOMAIN = "raritan_pdu"
 MANUFACTURER = "Raritan"
 
-PLATFORMS = [Platform.SENSOR, Platform.SWITCH]
+# PLATFORMS = [Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [Platform.SENSOR]
