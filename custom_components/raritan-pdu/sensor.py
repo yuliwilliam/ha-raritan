@@ -1,11 +1,11 @@
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass, SensorEntityDescription
 from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, UnitOfPower, PERCENTAGE, UnitOfEnergy
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, _LOGGER, MANUFACTURER
-from .raritan_pdu import RaritanPDU, RaritanPDUOutlet
+from .coordinator import RaritanPDUCoordinator
+from .const import DOMAIN, _LOGGER
 
 SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
@@ -48,35 +48,39 @@ SENSOR_DESCRIPTIONS = (
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
     """Set up the Raritan PDU sensor platform."""
-    pdu: RaritanPDU = hass.data[DOMAIN][entry.entry_id]
-    device_info = DeviceInfo(
-        manufacturer=MANUFACTURER,
-        identifiers={(DOMAIN, pdu.unique_id)},
-        name=pdu.name
-    )
+    coordinator: RaritanPDUCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     entities = []
-    for outlet in pdu.outlets:
-        for sensor_description in SENSOR_DESCRIPTIONS:
-            entities.append(RaritanPduOutletSensor(outlet, sensor_description, device_info))
+    for outlet in coordinator.pdu.outlets:
+        for description in SENSOR_DESCRIPTIONS:
+            entities.append(RaritanPduOutletSensor(coordinator, description, outlet.index))
 
     _LOGGER.info(f"Discovered {len(entities)} sensors")
     async_add_entities(entities)
 
 
-class RaritanPduOutletSensor(SensorEntity):
+class RaritanPduOutletSensor(CoordinatorEntity, SensorEntity):
     """Representation of an SNMP sensor for Raritan PDU."""
 
-    def __init__(self, outlet: RaritanPDUOutlet, description: SensorEntityDescription, device_info: DeviceInfo):
+    def __init__(self, coordinator: RaritanPDUCoordinator, description: SensorEntityDescription, outlet_index: str):
         """Initialize the sensor."""
-        self._outlet = outlet
-        self.entity_description = description
-        self._attr_device_info = device_info
-        self._attr_unique_id = f"{outlet.label}_{description.key}"
+        super().__init__(coordinator)
 
-    async def async_update(self):
-        try:
-            await self._outlet.update_data(self.entity_description.key)
-            self._attr_native_value = self._outlet.get_data(self.entity_description.key)
-        except Exception as e:
-            _LOGGER.error("Failed to update SNMP data: %s", e)
+        self.outlet_index = outlet_index
+        self.entity_description = description
+        self._attr_device_info = coordinator.device_info
+
+        self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_native_value = self.coordinator.data[self.outlet_index][self.entity_description.key]
+        self.async_write_ha_state()
+
+    # async def async_update(self):
+    #     try:
+    #         await self._outlet.update_data(self.entity_description.key)
+    #         self._attr_native_value = self._outlet.get_data(self.entity_description.key)
+    #     except Exception as e:
+    #         _LOGGER.error("Failed to update SNMP data: %s", e)

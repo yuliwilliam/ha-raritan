@@ -1,5 +1,3 @@
-import asyncio
-
 from .snmp import SNMPManager
 from .const import _LOGGER
 
@@ -10,10 +8,10 @@ class RaritanPDUOutlet:
         self.index = index
         self.energy_support = energy_support
 
-        self.label = ""
-
         # Ignore some data for performance optimization
         self.data = {
+            "label": "",
+
             # A value for each outlet which describes the operational state of the outlet. It is also used to set the operational state of the outlet Enumeration: 'on': 1, 'cycling': 2, 'off': 0, 'error': -1.
             # "operational_state": 0,
 
@@ -60,40 +58,26 @@ class RaritanPDUOutlet:
         if energy_support:
             self.data["watt_hours"] = 0
 
-    async def initialize(self):
-        _LOGGER.info(f"Initializing RaritanPDUOutlet {self.index}")
-        initialize_tasks = [self.update_label()]
-        for data_name in self.data.keys():
-            initialize_tasks.append(self.update_data(data_name))
-        await asyncio.gather(*initialize_tasks)
-
-    async def update_data(self, data_name):
-        if data_name not in self.data:
-            return
-        mib_object_name = f"outlet{data_name.title().replace('_', '')}"
-        result = await self.snmp_manager.snmp_get("PDU-MIB", mib_object_name, self.index)
-        if result is not None:
-            self.data[data_name] = result
-
-    async def update_label(self):
-        label = await self.snmp_manager.snmp_get("PDU-MIB", "outletLabel", self.index)
-        if label is not None:
-            self.label = label
-
-    def get_data(self, data_name):
-        if data_name not in self.data:
-            return None
-        return self.data[data_name]
-
-    # async def update_current(self):
-    #     current = await self.snmp_manager.snmp_get("PDU-MIB", "outletCurrent", self.index)
-    #     if current is not None:
-    #         self.current = current
+    # async def initialize(self):
+    #     _LOGGER.info(f"Initializing RaritanPDUOutlet {self.index}")
+    #     initialize_tasks = [self.update_label()]
+    #     for data_name in self.data.keys():
+    #         initialize_tasks.append(self.update_data(data_name))
+    #     await asyncio.gather(*initialize_tasks)
     #
-    # async def update_max_current(self):
-    #     max_current = await self.snmp_manager.snmp_get("PDU-MIB", "outletMaxCurrent", self.index)
-    #     if max_current is not None:
-    #         self.max_current = max_current
+    # async def update_data(self, data_name):
+    #     if data_name not in self.data:
+    #         return
+    #     mib_object_name = f"outlet{data_name.title().replace('_', '')}"
+    #     result = await self.snmp_manager.snmp_get(["PDU-MIB", mib_object_name, self.index])
+    #     if result is not None:
+    #         self.data[data_name] = result
+    #
+    #
+    # def get_data(self, data_name):
+    #     if data_name not in self.data:
+    #         return None
+    #     return self.data[data_name]
 
 
 class RaritanPDU:
@@ -103,36 +87,65 @@ class RaritanPDU:
         self.snmp_manager: SNMPManager = SNMPManager(host, port, community)
         self.name = ""
         self.energy_support = False
+        self.outlet_count = 0
         self.outlets: [RaritanPDUOutlet] = []
 
     async def authenticate(self) -> bool:
         """Test if we can authenticate with the host."""
         try:
-            result = await self.snmp_manager.snmp_get("SNMPv2-MIB", "sysDescr", 0)
+            result = await self.snmp_manager.snmp_get(["SNMPv2-MIB", "sysDescr", 0])
             is_valid = str(result).startswith("Raritan Dominion PX")
             if is_valid:
-                await self.initialize()
+                await self.update_data()
 
             return is_valid
         except Exception:
             return False
 
-    async def initialize(self):
+    async def update_data(self):
         _LOGGER.info("Initializing RaritanPDU")
-        desc = await self.snmp_manager.snmp_get("SNMPv2-MIB", "sysDescr", 0)
-        name = await self.snmp_manager.snmp_get("SNMPv2-MIB", "sysName", 0)
-        self.name = str(desc).split(" - ")[0] + " " + str(name)
 
-        energy_support = await self.snmp_manager.snmp_get("PDU-MIB", "outletEnergySupport", 0)
+        [desc, name, energy_support, outlet_count] = await self.snmp_manager.snmp_get(
+            ["SNMPv2-MIB", "sysDescr", 0],
+            ["SNMPv2-MIB", "sysName", 0],
+            ["PDU-MIB", "outletEnergySupport", 0],
+            ["PDU-MIB", "outletCount", 0]
+        )
+
+        self.name = str(desc).split(" - ")[0] + " " + str(name)
         self.energy_support = energy_support == "Yes"
 
-        outlet_count = await self.snmp_manager.snmp_get("PDU-MIB", "outletCount", 0)
-        _LOGGER.info(f"Initialized RaritanPDU {self.name} - {outlet_count} outlets")
+        # If the outlet count has changed, reinitialize the outlets list. This will run when first initialized.
+        if outlet_count != self.outlet_count:
+            self.outlet_count = outlet_count
+            self.outlets = []
+            for i in range(outlet_count):
+                # Create an outlet (index starts from 1) and append it to the outlets list
+                outlet = RaritanPDUOutlet(self.snmp_manager, i + 1, self.energy_support)
+                self.outlets.append(outlet)
 
-        initialize_tasks = []
-        for i in range(outlet_count):
-            outlet = RaritanPDUOutlet(self.snmp_manager, i + 1, self.energy_support)  # Outlet index starts from 1
-            initialize_tasks.append(outlet.initialize())  # Create task for initialization
-            self.outlets.append(outlet)
+        # For each outlet, append all relevant MIB OIDs (using the key names from outlet.data)
+        oids = []
+        for outlet in self.outlets:
+            for data_name in outlet.data.keys():
+                mib_object_name = f"outlet{data_name.title().replace('_', '')}"
+                oids.append(["PDU-MIB", mib_object_name, outlet.index])
 
-        await asyncio.gather(*initialize_tasks)
+        # Fetch all the outlet data in one go using the OIDs
+        results = await self.snmp_manager.snmp_get(*oids)
+
+        # Update outlet data with the fetched results
+        i = 0
+        for outlet in self.outlets:
+            for data_name in outlet.data.keys():
+                outlet.data[data_name] = results[i] # Update each data field in the outlet using the corresponding result
+                i += 1
+
+    # def get_outlet_by_index(self, index: int) -> RaritanPDUOutlet:
+    #     return self.outlets[index - 1]  # Outlet index starts from 1
+
+    def get_data(self) -> dict:
+        data = {}
+        for outlet in self.outlets:
+            data[outlet.index] = outlet.data.copy()
+        return data

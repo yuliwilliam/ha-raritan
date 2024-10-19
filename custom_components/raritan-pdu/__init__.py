@@ -4,9 +4,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
 
+from .coordinator import RaritanPDUCoordinator
 from .raritan_pdu import RaritanPDU
 from .const import _LOGGER, DOMAIN, PLATFORMS, CONF_COMMUNITY
-
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -18,11 +18,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("Failed to connect to Raritan PDU at %s", entry.data[CONF_HOST])
         raise ConfigEntryNotReady("Unable to connect")
 
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = pdu
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RaritanPDUCoordinator(hass, entry, pdu)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload Raritan PDU config entry."""
