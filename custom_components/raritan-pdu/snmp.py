@@ -34,13 +34,14 @@ class SNMPManager:
     async def snmp_get(self, *oids: any) -> any:
         # https://developers.home-assistant.io/docs/asyncio_blocking_operations/#open
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self._snmp_get, *oids)  # load modules if not already
+        promise =  await loop.run_in_executor(None, self._snmp_get, *oids)
+        return await promise
 
     async def _snmp_get(self, *oids: any) -> any:
         _LOGGER.debug(f"SNMP get: {self.host}:{self.port} {self.community} {oids}")
 
         # load modules if not already
-        await self.load_mib_modules()
+        self.load_mib_modules()
 
         oid_objects = [ObjectType(ObjectIdentity(*oid)) for oid in oids]
         errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
