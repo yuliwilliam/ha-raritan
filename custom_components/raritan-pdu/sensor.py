@@ -84,6 +84,8 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
 
+        _LOGGER.info(f"Restoring sensor {self.entity_description.key}'s to {str(last_state)}")
+
         # For now, only need to restore energy delivered
         if last_state is not None and self.entity_description.key == "energy_delivered":
             # Restore the last known state
