@@ -100,6 +100,8 @@ class RaritanPDU:
         """Test if we can authenticate with the host."""
         try:
             result = await self.snmp_manager.snmp_get(["SNMPv2-MIB", "sysDescr", 0])
+            if result is None:
+                return False
             return str(result).startswith("Raritan Dominion PX")
         except Exception:
             return False
@@ -107,12 +109,17 @@ class RaritanPDU:
     async def update_data(self):
         _LOGGER.info("Initializing RaritanPDU")
 
-        [desc, name, energy_support, outlet_count] = await self.snmp_manager.snmp_get(
+        result = await self.snmp_manager.snmp_get(
             ["SNMPv2-MIB", "sysDescr", 0],
             ["SNMPv2-MIB", "sysName", 0],
             ["PDU-MIB", "outletEnergySupport", 0],
             ["PDU-MIB", "outletCount", 0]
         )
+
+        if result is None:
+            return  # abort update
+
+        [desc, name, energy_support, outlet_count] = result
 
         self.name = str(desc).split(" - ")[0] + " " + str(name)
         self.energy_support = energy_support == "Yes"
@@ -136,6 +143,8 @@ class RaritanPDU:
         # Fetch all the outlet data in one go using the OIDs
         results = await self.snmp_manager.snmp_get(*oids)
         current_update_time = time.time()
+        if result is None:
+            return  # abort update
 
         # Update outlet data with the fetched results
         i = 0
