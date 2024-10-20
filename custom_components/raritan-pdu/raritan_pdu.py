@@ -71,10 +71,13 @@ class RaritanPDUOutlet:
     def update_energy_delivered(self, current_sensor_data_update_timestamp):
         # not enough data to estimate
         if self.last_sensor_data_update_timestamp == 0:
-            return
+            return  # abort
 
         time_diff_seconds = current_sensor_data_update_timestamp - self.last_sensor_data_update_timestamp
-        time_diff_hours = time_diff_seconds / (60 * 60)
+        if time_diff_seconds < 0:
+            return  # abort
+
+        time_diff_hours = time_diff_seconds / (60.0 * 60.0)
         new_energy_delivered = self.sensor_data["active_power"] * time_diff_hours
         self.energy_delivered += new_energy_delivered
 
@@ -83,7 +86,12 @@ class RaritanPDUOutlet:
 
     def get_data(self):
         data = self.sensor_data.copy()
+        _LOGGER.debug(f"Retried sensor data from Outlet {self.index} {str(data)}")
+
         data["energy_delivered"] = self.energy_delivered + self.initial_energy_delivered
+        _LOGGER.debug(
+            f"Retried energy data from Outlet energy_delivered: {self.energy_delivered} initial_energy_delivered:{self.initial_energy_delivered}")
+
         return data
 
 
