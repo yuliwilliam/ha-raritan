@@ -35,7 +35,7 @@ class RaritanPDUCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict:
         """Fetch the data from the device."""
-        await self.pdu.update_data()
+        await self.hass.async_add_executor_job(self.pdu.update_data)
         self.device_info = DeviceInfo(
             manufacturer=MANUFACTURER,
             identifiers={(DOMAIN, self.pdu.unique_id)},

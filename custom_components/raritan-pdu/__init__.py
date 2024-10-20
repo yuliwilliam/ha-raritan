@@ -19,7 +19,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady("Unable to connect")
 
     # initial update
-    await pdu.update_data()
+    await hass.async_add_executor_job(pdu.update_data)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RaritanPDUCoordinator(hass, pdu,
                                                                              entry.data[CONF_POLLING_INTERVAL])
 
