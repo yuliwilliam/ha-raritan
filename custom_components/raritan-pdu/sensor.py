@@ -1,3 +1,4 @@
+from homeassistant.components.number import UNIT_CONVERTERS
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass, SensorEntityDescription, \
     RestoreSensor
 from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, UnitOfPower, PERCENTAGE, UnitOfEnergy
@@ -84,14 +85,23 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
 
-        _LOGGER.info(f"Restoring sensor {self._attr_unique_id}'s to {str(last_state)}")
+        _LOGGER.debug(f"Restoring sensor {self._attr_unique_id}'s to {str(last_state)}")
 
         # For now, only need to restore energy delivered
         if last_state is not None and self.entity_description.key == "energy_delivered":
             # Restore the last known state
             value = float(last_state.state)
-            _LOGGER.info(f"Restored sensor {self._attr_unique_id}'s to {value}")
-            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(value)
+
+            # state is stored in suggested_unit_of_measurement
+            converter = UNIT_CONVERTERS[self.entity_description.device_class]
+            converted_value = converter.convert(
+                value,
+                self.entity_description.suggested_unit_of_measurement,
+                self.entity_description.native_unit_of_measurement,
+            )
+
+            _LOGGER.debug(f"Restored sensor {self._attr_unique_id}'s to {converted_value}")
+            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(converted_value)
 
     @callback
     def _handle_coordinator_update(self) -> None:
