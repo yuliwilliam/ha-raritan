@@ -79,7 +79,6 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
         self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
         self._attr_name = f"{self.coordinator.get_data_from_pdu()[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
 
-
     async def async_added_to_hass(self):
         """Restore the previous state when the entity is added to Home Assistant."""
         await super().async_added_to_hass()
@@ -88,8 +87,9 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
         # For now, only need to restore energy delivered
         if last_state is not None and self.entity_description.key == "energy_delivered":
             # Restore the last known state
-            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(float(last_state.state))
-
+            value = float(last_state.state)
+            _LOGGER.info(f"Restored sensor {self.entity_description.key}'s to {value}")
+            self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(value)
 
     @callback
     def _handle_coordinator_update(self) -> None:
