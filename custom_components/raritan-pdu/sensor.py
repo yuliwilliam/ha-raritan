@@ -1,10 +1,8 @@
-from homeassistant.components.number import UNIT_CONVERTERS
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass, SensorEntityDescription, \
-    RestoreSensor
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, RestoreSensor, \
+    UNIT_CONVERTERS
 from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, UnitOfPower, PERCENTAGE, UnitOfEnergy
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .coordinator import RaritanPDUCoordinator
