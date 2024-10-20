@@ -68,7 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
     """Representation of an SNMP sensor for Raritan PDU."""
 
-    def __init__(self, coordinator: RaritanPDUCoordinator, description: SensorEntityDescription, outlet_index: str):
+    def __init__(self, coordinator: RaritanPDUCoordinator, description: SensorEntityDescription, outlet_index: int):
         """Initialize the sensor."""
         super().__init__(coordinator)
 
@@ -84,13 +84,13 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
 
-        _LOGGER.info(f"Restoring sensor {self.entity_description.key}'s to {str(last_state)}")
+        _LOGGER.info(f"Restoring sensor {self._attr_unique_id}'s to {str(last_state)}")
 
         # For now, only need to restore energy delivered
         if last_state is not None and self.entity_description.key == "energy_delivered":
             # Restore the last known state
             value = float(last_state.state)
-            _LOGGER.info(f"Restored sensor {self.entity_description.key}'s to {value}")
+            _LOGGER.info(f"Restored sensor {self._attr_unique_id}'s to {value}")
             self.coordinator.pdu.get_outlet_by_index(self.outlet_index).initialize_energy_delivered(value)
 
     @callback

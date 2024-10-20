@@ -66,6 +66,7 @@ class RaritanPDUOutlet:
 
     def initialize_energy_delivered(self, initial_value: float):
         self.initial_energy_delivered = initial_value
+        _LOGGER.debug(f"Initialize Outlet {self.index} initial_energy_delivered to {self.initial_energy_delivered}")
 
     def update_energy_delivered(self, current_sensor_data_update_timestamp):
         # not enough data to estimate

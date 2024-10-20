@@ -34,7 +34,7 @@ class SNMPManager:
     async def snmp_get(self, *oids: any) -> any:
         # https://developers.home-assistant.io/docs/asyncio_blocking_operations/#open
         loop = asyncio.get_running_loop()
-        promise =  await loop.run_in_executor(None, self._snmp_get, *oids)
+        promise = await loop.run_in_executor(None, self._snmp_get, *oids)
         return await promise
 
     async def _snmp_get(self, *oids: any) -> any:
