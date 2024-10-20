@@ -25,9 +25,9 @@ class SNMPManager:
             _LOGGER.error(f"mibs directory does not exist: {MIB_SOURCE_DIR}, cwd: {os.getcwd()}")
 
         mibBuilder = builder.MibBuilder()
-        compiler.add_mib_compiler(mibBuilder, sources=[MIB_SOURCE_DIR])
         mibBuilder.add_mib_sources(builder.DirMibSource(MIB_SOURCE_DIR))
-        mibBuilder.loadModules('PDU-MIB', 'SNMPv2-SMI', 'INET-ADDRESS-MIB', 'SNMPv2-TC', 'SNMPv2-CONF')
+        compiler.add_mib_compiler(mibBuilder, sources=[MIB_SOURCE_DIR])
+        mibBuilder.loadModules('PDU-MIB', 'SNMPv2-SMI', 'INET-ADDRESS-MIB', 'SNMPv2-TC', 'SNMPv2-CONF', 'SNMPv2-MIB')
         mibViewController = view.MibViewController(mibBuilder)
         self.modules_loaded = True
 
