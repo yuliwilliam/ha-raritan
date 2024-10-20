@@ -16,6 +16,7 @@ class SNMPManager:
         self.community = community
 
         self.modules_loaded = False
+        self.snmp_engine = None
 
     def load_mib_modules(self):
         if self.modules_loaded:
@@ -38,12 +39,15 @@ class SNMPManager:
         loop = asyncio.get_event_loop()
 
         # load modules if not already
-        await loop.run_in_executor(None, self.load_mib_modules)
-        engine = await loop.run_in_executor(None, SnmpEngine)
+        if not self.modules_loaded:
+            await loop.run_in_executor(None, self.load_mib_modules)
+
+        if self.snmp_engine is None:
+            self.snmp_engine = await loop.run_in_executor(None, SnmpEngine)
 
         oid_objects = [ObjectType(ObjectIdentity(*oid)) for oid in oids]
         errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
-            engine,
+            self.snmp_engine,
             CommunityData(self.community),
             await UdpTransportTarget.create((self.host, self.port), timeout=5, retries=1),
             ContextData(),
