@@ -30,5 +30,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload Raritan PDU config entry."""
-    await hass.config_entries.async_forward_entry_unload(entry, PLATFORMS)
-    return True
+    unload_ok = True
+    for platform in PLATFORMS:
+        unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, platform)
+
+    return unload_ok
