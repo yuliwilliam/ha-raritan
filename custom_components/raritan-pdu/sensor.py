@@ -90,7 +90,7 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
         self.outlet_index = outlet_index
         self.entity_description = description
         self._attr_device_info = coordinator.device_info
-        self.is_outlet_sensor = self.outlet_index == 0  # outlet_index = 0 when this is a PDU level sensor
+        self.is_outlet_sensor = self.outlet_index != 0  # outlet_index = 0 when this is a PDU level sensor
 
         if self.is_outlet_sensor:
             self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
