@@ -103,6 +103,7 @@ class RaritanPDU:
         self.name = ""
         self.energy_support = False
         self.outlet_count = 0
+        self.cpu_temperature = 0
         self.outlets: [RaritanPDUOutlet] = []
 
     async def authenticate(self) -> bool:
@@ -122,16 +123,18 @@ class RaritanPDU:
             ["SNMPv2-MIB", "sysDescr", 0],
             ["SNMPv2-MIB", "sysName", 0],
             ["PDU-MIB", "outletEnergySupport", 0],
-            ["PDU-MIB", "outletCount", 0]
+            ["PDU-MIB", "outletCount", 0],
+            ["PDU-MIB", "unitCpuTemp", 0],  # The value for the unit's CPU temperature sensor in tenth degrees celsius.
         )
 
         if result is None:
             return  # abort update
 
-        [desc, name, energy_support, outlet_count] = result
+        [desc, name, energy_support, outlet_count, cpu_temperature] = result
 
         self.name = str(desc).split(" - ")[0] + " " + str(name)
         self.energy_support = energy_support == "Yes"
+        self.cpu_temperature = cpu_temperature / 10.0  # The value for the unit's CPU temperature sensor in tenth degrees celsius.
 
         # If the outlet count has changed, reinitialize the outlets list. This will run when first initialized.
         if outlet_count != self.outlet_count:
@@ -172,6 +175,10 @@ class RaritanPDU:
 
     def get_data(self) -> dict:
         data = {}
+        # Add data from outlets
         for outlet in self.outlets:
             data[outlet.index] = outlet.get_data()
+
+        # Add data from PDU
+        data["cpu_temperature"] = self.cpu_temperature
         return data

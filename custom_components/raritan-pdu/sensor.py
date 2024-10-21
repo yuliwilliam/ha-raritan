@@ -1,6 +1,7 @@
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, RestoreSensor, \
     UNIT_CONVERTERS
-from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, UnitOfPower, PERCENTAGE, UnitOfEnergy
+from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, UnitOfPower, PERCENTAGE, UnitOfEnergy, \
+    UnitOfTemperature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -8,7 +9,18 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import RaritanPDUCoordinator
 from .const import DOMAIN, _LOGGER
 
-SENSOR_DESCRIPTIONS = (
+PDU_SENSOR_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="cpu_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        suggested_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:thermometer",
+    ),
+)
+
+OUTLET_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="current",
         device_class=SensorDeviceClass.CURRENT,
@@ -48,6 +60,7 @@ SENSOR_DESCRIPTIONS = (
         state_class=SensorStateClass.TOTAL,
         icon="mdi:lightning-bolt",
     )
+    # To add new outlet sensor, uncomment/update the corresponding line in RaritanPDUOutlet.sensor_data
 )
 
 
@@ -57,14 +70,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
     entities = []
     for outlet in coordinator.pdu.outlets:
-        for description in SENSOR_DESCRIPTIONS:
-            entities.append(RaritanPduOutletSensor(coordinator, description, outlet.index))
+        for description in OUTLET_SENSOR_DESCRIPTIONS:
+            entities.append(RaritanPduSensor(coordinator, description, outlet.index))
+
+    for description in PDU_SENSOR_DESCRIPTIONS:
+        entities.append(RaritanPduSensor(coordinator, description, 0))
 
     _LOGGER.info(f"Discovered {len(entities)} sensors")
     async_add_entities(entities)
 
 
-class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
+class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
     """Representation of an SNMP sensor for Raritan PDU."""
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: SensorEntityDescription, outlet_index: int):
@@ -74,9 +90,14 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
         self.outlet_index = outlet_index
         self.entity_description = description
         self._attr_device_info = coordinator.device_info
+        self.is_outlet_sensor = self.outlet_index == 0  # outlet_index = 0 when this is a PDU level sensor
 
-        self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
-        self._attr_name = f"{self.coordinator.get_data_from_pdu()[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
+        if self.is_outlet_sensor:
+            self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
+            self._attr_name = f"{self.coordinator.get_data_from_pdu()[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
+        else:
+            self._attr_unique_id = f"pdu_{description.key}"
+            self._attr_name = f"{description.key.replace('_', ' ')}"
 
     async def async_added_to_hass(self):
         """Restore the previous state when the entity is added to Home Assistant."""
@@ -104,5 +125,9 @@ class RaritanPduOutletSensor(CoordinatorEntity, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_native_value = self.coordinator.data[self.outlet_index][self.entity_description.key]
+        if self.is_outlet_sensor:
+            self._attr_native_value = self.coordinator.data[self.outlet_index][self.entity_description.key]
+        else:
+            self._attr_native_value = self.coordinator.data[self.entity_description.key]
+
         self.async_write_ha_state()
