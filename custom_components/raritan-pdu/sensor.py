@@ -12,6 +12,7 @@ from .const import DOMAIN, _LOGGER
 PDU_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="cpu_temperature",
+        name="CPU temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -20,6 +21,7 @@ PDU_SENSOR_DESCRIPTIONS = (
     ),
 )
 
+# SensorEntityDescription.name will be assigned based on outlet label inside the sensor class
 OUTLET_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="current",
@@ -97,7 +99,7 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
             self._attr_name = f"{self.coordinator.get_data_from_pdu()[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
         else:
             self._attr_unique_id = f"pdu_{description.key}"
-            self._attr_name = f"{description.key.replace('_', ' ')}"
+            self._attr_name = description.name
 
     async def async_added_to_hass(self):
         """Restore the previous state when the entity is added to Home Assistant."""
