@@ -90,7 +90,7 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
         self.outlet_index = outlet_index
         self.entity_description = description
         self._attr_device_info = coordinator.device_info
-        self.is_outlet_sensor = self.outlet_index != 0  # outlet_index = 0 when this is a PDU level sensor
+        self.is_outlet_sensor = self.outlet_index > 0  # outlet_index = 0 when this is a PDU level sensor
 
         if self.is_outlet_sensor:
             self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
@@ -107,7 +107,7 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
         _LOGGER.debug(f"Restoring sensor {self._attr_unique_id}'s to {str(last_state)}")
 
         # For now, only need to restore energy delivered
-        if last_state is not None and self.entity_description.key == "energy_delivered":
+        if last_state is not None and self.is_outlet_sensor and self.entity_description.key == "energy_delivered":
             # Restore the last known state
             value = float(last_state.state)
 
