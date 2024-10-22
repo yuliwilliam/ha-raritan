@@ -27,7 +27,9 @@ class RaritanPDUCoordinator(DataUpdateCoordinator):
         self.device_info = DeviceInfo(
             manufacturer=MANUFACTURER,
             identifiers={(DOMAIN, self.pdu.unique_id)},
-            name=self.pdu.name
+            name=self.pdu.name,
+            # sw_version=
+            # model=self.pdu.model,
         )
 
     async def _async_update_data(self) -> dict:

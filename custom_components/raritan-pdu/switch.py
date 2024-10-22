@@ -3,8 +3,8 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntityDescription, SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from entity import RaritanPDUEntity
 from .const import DOMAIN
 from .coordinator import RaritanPDUCoordinator
 
@@ -25,31 +25,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities = []
     for outlet in coordinator.pdu.outlets:
         for description in PDU_SWITCH_DESCRIPTIONS:
-            entities.append(RaritanPduSwitch(coordinator, description, outlet.index))
+            entities.append(RaritanPDUSwitch(coordinator, description, outlet.index))
 
     async_add_entities(entities)
 
 
-class RaritanPduSwitch(CoordinatorEntity, SwitchEntity):
+class RaritanPDUSwitch(RaritanPDUEntity, SwitchEntity):
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: SwitchEntityDescription, outlet_index: int):
-        super().__init__(coordinator)
-
-        self.outlet_index = outlet_index
-        self.entity_description = description
-        self._attr_device_info = coordinator.device_info
-
-        self._attr_unique_id = f"{self.coordinator.pdu.name.replace('-', '_')}_outlet_{self.outlet_index}_{description.key}"
-        self._attr_name = f"{self.coordinator.pdu.get_outlet_by_index(self.outlet_index).get_outlet_index_and_label()} {description.key.replace('_', ' ')}"
+        super().__init__(coordinator, description, outlet_index)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the outlet on."""
-        await self.coordinator.pdu.get_outlet_by_index(self.outlet_index).power_on()
+        await self.outlet.power_on()
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the outlet off."""
-        await self.coordinator.pdu.get_outlet_by_index(self.outlet_index).power_off()
+        await self.outlet.power_off()
         await self.coordinator.async_request_refresh()
 
     @property

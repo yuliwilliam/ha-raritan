@@ -1,11 +1,11 @@
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, RestoreSensor, \
-    UNIT_CONVERTERS
+    UNIT_CONVERTERS, SensorEntity
 from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, UnitOfPower, PERCENTAGE, UnitOfEnergy, \
     UnitOfTemperature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from entity import RaritanPDUEntity
 from .coordinator import RaritanPDUCoordinator
 from .const import DOMAIN, _LOGGER
 
@@ -73,33 +73,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities = []
     for outlet in coordinator.pdu.outlets:
         for description in OUTLET_SENSOR_DESCRIPTIONS:
-            entities.append(RaritanPduSensor(coordinator, description, outlet.index))
+            entities.append(RaritanPDUSensor(coordinator, description, outlet.index))
 
     for description in PDU_SENSOR_DESCRIPTIONS:
-        entities.append(RaritanPduSensor(coordinator, description, 0))
+        entities.append(RaritanPDUSensor(coordinator, description, 0))
 
     _LOGGER.info(f"Discovered {len(entities)} sensors")
     async_add_entities(entities)
 
 
-class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
+class RaritanPDUSensor(RaritanPDUEntity, RestoreSensor, SensorEntity):
     """Representation of an SNMP sensor for Raritan PDU."""
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: SensorEntityDescription, outlet_index: int):
         """Initialize the sensor."""
-        super().__init__(coordinator)
-
-        self.outlet_index = outlet_index
-        self.entity_description = description
-        self._attr_device_info = coordinator.device_info
-        self.is_outlet_sensor = self.outlet_index > 0  # outlet_index = 0 when this is a PDU level sensor
-
-        if self.is_outlet_sensor:
-            self._attr_unique_id = f"{self.coordinator.pdu.name.replace('-', '_')}_outlet_{self.outlet_index}_{description.key}"
-            self._attr_name = f"{self.coordinator.pdu.get_outlet_by_index(self.outlet_index).get_outlet_index_and_label()} {description.key.replace('_', ' ')}"
-        else:
-            self._attr_unique_id = f"{self.coordinator.pdu.name.replace('-', '_')}_pdu_{description.key}"
-            self._attr_name = description.name
+        super().__init__(coordinator, description, outlet_index)
 
     async def async_added_to_hass(self):
         """Restore the previous state when the entity is added to Home Assistant."""
@@ -109,7 +97,7 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
         _LOGGER.debug(f"Restoring sensor {self._attr_unique_id}'s to {str(last_state)}")
 
         # For now, only need to restore energy delivered
-        if last_state is not None and self.is_outlet_sensor and self.entity_description.key == "energy_delivered":
+        if last_state is not None and self.outlet is not None and self.entity_description.key == "energy_delivered":
             # Restore the last known state
             value = float(last_state.state)
 
@@ -127,7 +115,7 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self.is_outlet_sensor:
+        if self.outlet is not None:
             self._attr_native_value = self.coordinator.data[self.outlet_index][self.entity_description.key]
         else:
             self._attr_native_value = self.coordinator.data[self.entity_description.key]
