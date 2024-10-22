@@ -95,10 +95,10 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
         self.is_outlet_sensor = self.outlet_index > 0  # outlet_index = 0 when this is a PDU level sensor
 
         if self.is_outlet_sensor:
-            self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
+            self._attr_unique_id = f"{self.coordinator.pdu.name.replace('-', '_')}_outlet_{self.outlet_index}_{description.key}"
             self._attr_name = f"{self.coordinator.pdu.get_outlet_by_index(self.outlet_index).get_outlet_index_and_label()} {description.key.replace('_', ' ')}"
         else:
-            self._attr_unique_id = f"pdu_{description.key}"
+            self._attr_unique_id = f"{self.coordinator.pdu.name.replace('-', '_')}_pdu_{description.key}"
             self._attr_name = description.name
 
     async def async_added_to_hass(self):

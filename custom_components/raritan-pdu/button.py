@@ -39,7 +39,7 @@ class RaritanPduSwitch(CoordinatorEntity, ButtonEntity):
         self.entity_description = description
         self._attr_device_info = coordinator.device_info
 
-        self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
+        self._attr_unique_id = f"{self.coordinator.pdu.name.replace('-', '_')}_outlet_{self.outlet_index}_{description.key}"
         self._attr_name = f"{self.coordinator.pdu.get_outlet_by_index(self.outlet_index).get_outlet_index_and_label()} {description.key.replace('_', ' ')}"
 
     async def async_press(self, **kwargs: Any) -> None:
