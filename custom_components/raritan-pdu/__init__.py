@@ -1,19 +1,20 @@
 """Raritan PDU Integration."""
-from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .coordinator import RaritanPDUCoordinator
 from .raritan_pdu import RaritanPDU
-from .const import _LOGGER, DOMAIN, PLATFORMS, CONF_COMMUNITY, CONF_POLLING_INTERVAL
+from .const import _LOGGER, DOMAIN, PLATFORMS, CONF_READ_COMMUNITY, CONF_WRITE_COMMUNITY, CONF_POLLING_INTERVAL, \
+    CONF_HOST, CONF_PORT
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Raritan PDU from a config entry."""
     # Set up the sensor platform
 
-    pdu = RaritanPDU(entry.data[CONF_HOST], entry.data[CONF_PORT], entry.data[CONF_COMMUNITY])
+    pdu = RaritanPDU(entry.data[CONF_HOST], entry.data[CONF_PORT], entry.data[CONF_READ_COMMUNITY],
+                     entry.data[CONF_WRITE_COMMUNITY])
     if not await pdu.authenticate():
         _LOGGER.error("Failed to connect to Raritan PDU at %s", entry.data[CONF_HOST])
         raise ConfigEntryNotReady("Unable to connect")
