@@ -29,12 +29,7 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
             self.outlet = self.coordinator.pdu.get_outlet_by_index(self.outlet_index)
 
     @property
-    def has_entity_name(self) -> bool:
-        """Return if the name of the entity is describing only the entity itself."""
-        return True
-
-    @property
-    def name(self) -> str:
+    def name(self) -> str | None:
         """Return the name of the entity."""
         if self.entity_description.name is not None:
             return self.entity_description.name
