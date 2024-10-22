@@ -56,3 +56,9 @@ class RaritanPduSwitch(CoordinatorEntity, SwitchEntity):
     def is_on(self):
         """Is the outlet on."""
         return self.coordinator.data[self.outlet_index]["operational_state"] == "on"
+
+    @property
+    def available(self) -> bool:
+        """The outlet can be turned on/off when it is not in power cycling or error."""
+        return self.coordinator.data[self.outlet_index]["operational_state"] == "on" or \
+            self.coordinator.data[self.outlet_index]["operational_state"] == "off"

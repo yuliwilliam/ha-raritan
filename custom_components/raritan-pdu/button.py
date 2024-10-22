@@ -47,8 +47,7 @@ class RaritanPduSwitch(CoordinatorEntity, ButtonEntity):
         await self.coordinator.pdu.get_outlet_by_index(self.outlet_index).power_cycle()
         await self.coordinator.async_request_refresh()
 
-
     @property
     def available(self) -> bool:
-        """Return if entity is available."""
+        """The outlet can be power cycled when it is on."""
         return self.coordinator.data[self.outlet_index]["operational_state"] == "on"
