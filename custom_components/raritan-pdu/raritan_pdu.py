@@ -70,6 +70,13 @@ class RaritanPDUOutlet:
         if energy_support:
             self.sensor_data["watt_hours"] = 0
 
+    def get_outlet_index_and_label(self):
+        outlet_label = self.sensor_data['label']
+        if outlet_label == f"Outlet {self.index}":
+            return outlet_label
+        else:
+            return f"Outlet {self.index} {outlet_label}"
+
     def get_sensor_oid_from_sensor_name(self, sensor_name: str) -> str:
         mib_object_name = f"outlet{sensor_name.title().replace('_', '')}"
         return mib_object_name
@@ -132,7 +139,7 @@ class RaritanPDUOutlet:
             new_operational_state = await self.snmp_manager.snmp_get(
                 ["PDU-MIB", self.get_sensor_oid_from_sensor_name("operational_state"), self.index])
             if time.time() - start > 10:
-                break # timeout to set state
+                break  # timeout to set state
 
         self.update_sensor_data({"operational_state": new_operational_state})
 

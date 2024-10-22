@@ -17,6 +17,7 @@ PDU_SWITCH_DESCRIPTIONS = (
     ),
 )
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
     """Set up the Raritan PDU sensor platform."""
     coordinator: RaritanPDUCoordinator = hass.data[DOMAIN][entry.entry_id]
@@ -39,14 +40,7 @@ class RaritanPduSwitch(CoordinatorEntity, SwitchEntity):
         self._attr_device_info = coordinator.device_info
 
         self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
-        outlet_label = self.coordinator.get_data_from_pdu()[self.outlet_index]['label']
-        switch_name = description.key.replace('_', ' ')
-        if outlet_label == f"Outlet {self.outlet_index}":
-            self._attr_name = f"{outlet_label} {switch_name}"
-        else:
-            self._attr_name = f"Outlet {self.outlet_index} {outlet_label} {switch_name}"
-
-
+        self._attr_name = f"{self.coordinator.pdu.get_outlet_by_index(self.outlet_index).get_outlet_index_and_label()} {description.key.replace('_', ' ')}"
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
