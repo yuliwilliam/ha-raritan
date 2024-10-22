@@ -121,11 +121,14 @@ class RaritanPDUOutlet:
         new_energy_delivered = self.previous_sensor_data["active_power"] * time_diff_hours
         self.energy_delivered += new_energy_delivered
 
-    async def turn_on(self):
+    async def power_on(self):
         await self.set_operational_state("on")
 
-    async def turn_off(self):
+    async def power_off(self):
         await self.set_operational_state("off")
+
+    async def power_cycle(self):
+        await self.set_operational_state("cycling")
 
     async def set_operational_state(self, operational_state: str):
         expected_new_operational_state = await self.snmp_manager.snmp_set(

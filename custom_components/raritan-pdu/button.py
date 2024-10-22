@@ -1,6 +1,6 @@
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntityDescription, SwitchDeviceClass, SwitchEntity
+from homeassistant.components.button import ButtonEntityDescription, ButtonDeviceClass, ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -8,12 +8,12 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import RaritanPDUCoordinator
 
-PDU_SWITCH_DESCRIPTIONS = (
-    SwitchEntityDescription(
-        key="power_switch",
-        name="Power switch",
-        device_class=SwitchDeviceClass.OUTLET,
-        icon="mdi:power-socket-us",
+PDU_BUTTON_DESCRIPTIONS = (
+    ButtonEntityDescription(
+        key="power_cycle",
+        name="Power cycle",
+        device_class=ButtonDeviceClass.RESTART,
+        icon="mdi:restart",
     ),
 )
 
@@ -24,15 +24,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
     entities = []
     for outlet in coordinator.pdu.outlets:
-        for description in PDU_SWITCH_DESCRIPTIONS:
+        for description in PDU_BUTTON_DESCRIPTIONS:
             entities.append(RaritanPduSwitch(coordinator, description, outlet.index))
 
     async_add_entities(entities)
 
 
-class RaritanPduSwitch(CoordinatorEntity, SwitchEntity):
+class RaritanPduSwitch(CoordinatorEntity, ButtonEntity):
 
-    def __init__(self, coordinator: RaritanPDUCoordinator, description: SwitchEntityDescription, outlet_index: int):
+    def __init__(self, coordinator: RaritanPDUCoordinator, description: ButtonEntityDescription, outlet_index: int):
         super().__init__(coordinator)
 
         self.outlet_index = outlet_index
@@ -42,17 +42,13 @@ class RaritanPduSwitch(CoordinatorEntity, SwitchEntity):
         self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
         self._attr_name = f"{self.coordinator.pdu.get_outlet_by_index(self.outlet_index).get_outlet_index_and_label()} {description.key.replace('_', ' ')}"
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the outlet on."""
-        await self.coordinator.pdu.get_outlet_by_index(self.outlet_index).power_on()
+    async def async_press(self, **kwargs: Any) -> None:
+        """Power cycle outlet"""
+        await self.coordinator.pdu.get_outlet_by_index(self.outlet_index).power_cycle()
         await self.coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the outlet off."""
-        await self.coordinator.pdu.get_outlet_by_index(self.outlet_index).power_off()
-        await self.coordinator.async_request_refresh()
 
     @property
-    def is_on(self):
-        """Is the outlet on."""
+    def available(self) -> bool:
+        """Return if entity is available."""
         return self.coordinator.data[self.outlet_index]["operational_state"] == "on"
