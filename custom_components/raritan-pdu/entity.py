@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Optional
 
 from homeassistant.components.button import ButtonEntityDescription
-from homeassistant.components.fjaraskupan.binary_sensor import EntityDescription
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.entity import Entity
@@ -28,6 +27,11 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
         self.outlet: RaritanPDUOutlet = None
         if self.outlet_index > 0:
             self.outlet = self.coordinator.pdu.get_outlet_by_index(self.outlet_index)
+
+    @property
+    def has_entity_name(self) -> bool:
+        """Return if the name of the entity is describing only the entity itself."""
+        return True
 
     @property
     def name(self) -> str:
