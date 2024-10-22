@@ -9,7 +9,7 @@ from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from raritan_pdu import RaritanPDUOutlet
+from .raritan_pdu import RaritanPDUOutlet
 from .coordinator import RaritanPDUCoordinator
 
 
