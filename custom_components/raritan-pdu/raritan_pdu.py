@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from .snmp import SNMPManager
@@ -15,7 +16,7 @@ class RaritanPDUOutlet:
             "label": "",
 
             # A value for each outlet which describes the operational state of the outlet. It is also used to set the operational state of the outlet Enumeration: 'on': 1, 'cycling': 2, 'off': 0, 'error': -1.
-            # "operational_state": 0,
+            "operational_state": "",
 
             # A unique value for the current sensor attached to the outlet. This value is reported in milliamps (1/1000th of an amp)
             "current": 0,
@@ -56,7 +57,12 @@ class RaritanPDUOutlet:
             # NOT SUPPORTED by all PDUs. The value of the cumulative active energy for this outlet. This value is reported in WattHours. The total energy consumption in watt-hours (accumulated over time)
             # "watt_hours": 0,
         }
-        self.last_sensor_data_update_timestamp = 0
+
+        # A snapshot of previous sensor data
+        self.previous_sensor_data = {}
+
+        self.sensor_data_update_timestamp = 0
+        self.previous_sensor_data_update_timestamp = 0
 
         self.initial_energy_delivered = 0  # energy delivered from previous sessions
         self.energy_delivered = 0  # energy delivered in current session
@@ -64,42 +70,87 @@ class RaritanPDUOutlet:
         if energy_support:
             self.sensor_data["watt_hours"] = 0
 
+    def get_sensor_oid_from_sensor_name(self, sensor_name: str) -> str:
+        mib_object_name = f"outlet{sensor_name.title().replace('_', '')}"
+        return mib_object_name
+
+    def get_sensor_oids(self):
+        oids = []
+        for data_name in self.sensor_data.keys():
+            oids.append(["PDU-MIB", self.get_sensor_oid_from_sensor_name(data_name), self.index])
+        return oids
+
+    def get_sensor_names(self):
+        return self.sensor_data.keys()
+
+    def update_sensor_data(self, new_sensor_data: dict[str, any]):
+        # backup
+        self.previous_sensor_data_update_timestamp = self.sensor_data_update_timestamp
+        self.previous_sensor_data = self.sensor_data.copy()
+
+        # update
+        self.sensor_data_update_timestamp = time.time()
+        for key in new_sensor_data.keys():
+            self.sensor_data[key] = new_sensor_data[key]
+
+        self.update_energy_delivered()
+
     def initialize_energy_delivered(self, initial_value: float):
         self.initial_energy_delivered = initial_value
         _LOGGER.debug(f"Initialize Outlet {self.index} initial_energy_delivered to {self.initial_energy_delivered}")
 
-    def update_energy_delivered(self, current_sensor_data_update_timestamp):
+    def update_energy_delivered(self):
+        """Calculated using Left Riemann Sum"""
+
         # not enough data to estimate
-        if self.last_sensor_data_update_timestamp == 0:
+        if self.previous_sensor_data_update_timestamp == 0 or self.sensor_data_update_timestamp == 0:
             return  # abort
 
-        time_diff_seconds = current_sensor_data_update_timestamp - self.last_sensor_data_update_timestamp
+        time_diff_seconds = self.sensor_data_update_timestamp - self.previous_sensor_data_update_timestamp
         if time_diff_seconds < 0:
             return  # abort
 
-        time_diff_hours = time_diff_seconds / (60.0 * 60.0)
-        new_energy_delivered = self.sensor_data["active_power"] * time_diff_hours
+        time_diff_hours = time_diff_seconds / (60.0 * 60.0)  # 3600s in 1 hour
+        new_energy_delivered = self.previous_sensor_data["active_power"] * time_diff_hours
         self.energy_delivered += new_energy_delivered
 
-    def update_last_sensor_data_update_timestamp(self, current_sensor_data_update_timestamp):
-        self.last_sensor_data_update_timestamp = current_sensor_data_update_timestamp
+    async def turn_on(self):
+        await self.set_operational_state("on")
+
+    async def turn_off(self):
+        await self.set_operational_state("off")
+
+    async def set_operational_state(self, operational_state: str):
+        expected_new_operational_state = await self.snmp_manager.snmp_set(
+            [["PDU-MIB", self.get_sensor_oid_from_sensor_name("operational_state"), self.index], operational_state])
+        new_operational_state = ""
+
+        # Wait for the PDU to process
+        start = time.time()
+        while expected_new_operational_state != new_operational_state:
+            await asyncio.sleep(1)
+            new_operational_state = await self.snmp_manager.snmp_get(
+                ["PDU-MIB", self.get_sensor_oid_from_sensor_name("operational_state"), self.index])
+            if time.time() - start > 10:
+                break # timeout to set state
+
+        self.update_sensor_data({"operational_state": new_operational_state})
+
+    def is_on(self):
+        return self.sensor_data["operational_state"] == "on"
 
     def get_data(self):
         data = self.sensor_data.copy()
-        _LOGGER.debug(f"Retried sensor data from Outlet {self.index} {str(data)}")
-
+        # add energy_delivered data
         data["energy_delivered"] = self.energy_delivered + self.initial_energy_delivered
-        _LOGGER.debug(
-            f"Retried energy data from Outlet energy_delivered: {self.energy_delivered} initial_energy_delivered:{self.initial_energy_delivered}")
-
         return data
 
 
 class RaritanPDU:
-    def __init__(self, host: str, port: int, community: str) -> None:
+    def __init__(self, host: str, port: int, read_community: str, write_community: str) -> None:
         """Initialize."""
-        self.unique_id = f"{host}:{port} {community}"
-        self.snmp_manager: SNMPManager = SNMPManager(host, port, community)
+        self.unique_id = f"{host}:{port}, read community: {read_community}, write community: {write_community}"
+        self.snmp_manager: SNMPManager = SNMPManager(host, port, read_community, write_community)
         self.name = ""
         self.energy_support = False
         self.outlet_count = 0
@@ -136,7 +187,7 @@ class RaritanPDU:
         self.energy_support = energy_support == "Yes"
         self.cpu_temperature = cpu_temperature / 10.0  # The value for the unit's CPU temperature sensor in tenth degrees celsius.
 
-        # If the outlet count has changed, reinitialize the outlets list. This will run when first initialized.
+        # If the outlet count has changed, reinitialize the outlets list. This should only run when first initialized.
         if outlet_count != self.outlet_count:
             self.outlet_count = outlet_count
             self.outlets = []
@@ -145,30 +196,20 @@ class RaritanPDU:
                 outlet = RaritanPDUOutlet(self.snmp_manager, i + 1, self.energy_support)
                 self.outlets.append(outlet)
 
-        # For each outlet, append all relevant MIB OIDs (using the key names from outlet.data)
-        oids = []
+        # For each outlet, append all relevant MIB OIDs
+        outlet_sensor_oids = []
         for outlet in self.outlets:
-            for data_name in outlet.sensor_data.keys():
-                mib_object_name = f"outlet{data_name.title().replace('_', '')}"
-                oids.append(["PDU-MIB", mib_object_name, outlet.index])
+            outlet_sensor_oids.extend(outlet.get_sensor_oids())
 
         # Fetch all the outlet data in one go using the OIDs
-        results = await self.snmp_manager.snmp_get(*oids)
-        current_update_time = time.time()
+        results = await self.snmp_manager.snmp_get(*outlet_sensor_oids)
         if result is None:
             return  # abort update
 
         # Update outlet data with the fetched results
-        i = 0
-        for outlet in self.outlets:
-            for data_name in outlet.sensor_data.keys():
-                # Update each data field in the outlet using the corresponding result
-                outlet.sensor_data[data_name] = results[i]
-                i += 1
-
-            # Calculate energy first, then update timestamp
-            outlet.update_energy_delivered(current_update_time)
-            outlet.update_last_sensor_data_update_timestamp(current_update_time)
+        for i, outlet in enumerate(self.outlets):
+            new_sensor_data = results[i * len(outlet.get_sensor_oids()): (i + 1) * len(outlet.get_sensor_oids())]
+            outlet.update_sensor_data(dict(zip(outlet.get_sensor_names(), new_sensor_data)))
 
     def get_outlet_by_index(self, index: int) -> RaritanPDUOutlet:
         return self.outlets[index - 1]  # Outlet index starts from 1

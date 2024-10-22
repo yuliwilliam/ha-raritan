@@ -96,7 +96,12 @@ class RaritanPduSensor(CoordinatorEntity, RestoreSensor):
 
         if self.is_outlet_sensor:
             self._attr_unique_id = f"outlet_{self.outlet_index}_{description.key}"
-            self._attr_name = f"{self.coordinator.get_data_from_pdu()[self.outlet_index]['label']} {description.key.replace('_', ' ')}"
+            outlet_label = self.coordinator.pdu.get_data()[self.outlet_index]['label']
+            sensor_name = description.key.replace('_', ' ')
+            if outlet_label == f"Outlet {self.outlet_index}":
+                self._attr_name = f"{outlet_label} {sensor_name}"
+            else:
+                self._attr_name = f"Outlet {self.outlet_index} {outlet_label} {sensor_name}"
         else:
             self._attr_unique_id = f"pdu_{description.key}"
             self._attr_name = description.name

@@ -4,13 +4,14 @@ from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PORT, CONF_HOST
 
 from .raritan_pdu import RaritanPDU
-from .const import _LOGGER, DOMAIN, CONF_COMMUNITY, CONF_POLLING_INTERVAL
+from .const import _LOGGER, DOMAIN, CONF_READ_COMMUNITY, CONF_WRITE_COMMUNITY, CONF_POLLING_INTERVAL
 
 DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,
     vol.Optional(CONF_PORT, default=161): int,
-    vol.Optional(CONF_COMMUNITY, default="public"): str,
-    vol.Optional(CONF_POLLING_INTERVAL, default=15): int,
+    vol.Optional(CONF_READ_COMMUNITY, default="public"): str,
+    vol.Optional(CONF_WRITE_COMMUNITY, default="private"): str,
+    vol.Optional(CONF_POLLING_INTERVAL, default=5): int,
 })
 
 
@@ -21,10 +22,12 @@ class RaritanPDUConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST],
                                              CONF_PORT: user_input[CONF_PORT],
-                                             CONF_COMMUNITY: user_input[CONF_COMMUNITY]})
+                                             CONF_READ_COMMUNITY: user_input[CONF_READ_COMMUNITY],
+                                             CONF_WRITE_COMMUNITY: user_input[CONF_WRITE_COMMUNITY]})
 
             try:
-                pdu = RaritanPDU(user_input[CONF_HOST], user_input[CONF_PORT], user_input[CONF_COMMUNITY])
+                pdu = RaritanPDU(user_input[CONF_HOST], user_input[CONF_PORT], user_input[CONF_READ_COMMUNITY],
+                                 user_input[CONF_WRITE_COMMUNITY])
                 if not await pdu.authenticate():
                     raise InvalidHost
                 else:
@@ -41,4 +44,4 @@ class RaritanPDUConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class InvalidHost(exceptions.HomeAssistantError):
-    """Error to indicate this is a invalid host."""
+    """Error to indicate this is an invalid host."""

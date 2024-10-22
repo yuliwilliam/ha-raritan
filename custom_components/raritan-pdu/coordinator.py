@@ -30,9 +30,6 @@ class RaritanPDUCoordinator(DataUpdateCoordinator):
             name=self.pdu.name
         )
 
-    def get_data_from_pdu(self):
-        return self.pdu.get_data()
-
     async def _async_update_data(self) -> dict:
         """Fetch the data from the device."""
         await self.pdu.update_data()
