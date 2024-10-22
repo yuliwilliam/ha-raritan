@@ -4,7 +4,7 @@ from homeassistant.components.button import ButtonEntityDescription, ButtonDevic
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from entity import RaritanPDUEntity
+from .entity import RaritanPDUEntity
 from .const import DOMAIN
 from .coordinator import RaritanPDUCoordinator
 

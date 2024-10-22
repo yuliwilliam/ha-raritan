@@ -5,7 +5,7 @@ from homeassistant.const import UnitOfElectricCurrent, UnitOfElectricPotential, 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 
-from entity import RaritanPDUEntity
+from .entity import RaritanPDUEntity
 from .coordinator import RaritanPDUCoordinator
 from .const import DOMAIN, _LOGGER
 
