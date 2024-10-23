@@ -87,7 +87,7 @@ class RaritanPDUSensor(RaritanPDUEntity, RestoreSensor, SensorEntity):
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: SensorEntityDescription, outlet_index: int):
         """Initialize the sensor."""
-        super().__init__(coordinator, description, outlet_index)
+        super(RaritanPDUEntity, self).__init__(coordinator, description, outlet_index)
 
     async def async_added_to_hass(self):
         """Restore the previous state when the entity is added to Home Assistant."""

@@ -33,7 +33,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class RaritanPDUSwitch(RaritanPDUEntity, ButtonEntity):
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: ButtonEntityDescription, outlet_index: int):
-        super().__init__(coordinator, description, outlet_index)
+        super(RaritanPDUEntity, self).__init__(coordinator, description, outlet_index)
 
     async def async_press(self, **kwargs: Any) -> None:
         """Power cycle outlet"""
