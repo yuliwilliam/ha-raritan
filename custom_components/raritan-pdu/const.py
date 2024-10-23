@@ -6,7 +6,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 
 _LOGGER = logging.getLogger(__package__)
 
-DOMAIN: Final = "raritan_pdu"
+DOMAIN: Final = "raritan"
 MANUFACTURER: Final = "Raritan"
 
 CONF_HOST = CONF_HOST
