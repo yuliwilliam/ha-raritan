@@ -22,10 +22,9 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
         if self.outlet_index > 0:
             self.outlet = self.coordinator.pdu.get_outlet_by_index(self.outlet_index)
 
-        self._attr_device_info = self.coordinator.device_info
-        self._attr_unique_id = f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(
-            " ", "-").lower()
-
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
         default_name = self.entity_description.key.replace('_', ' ')
         _LOGGER.debug(f"description {self.entity_description.key}, {default_name}, {self.entity_description.name}")
         if self.outlet is not None:
@@ -33,6 +32,17 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
             name_prefix = f"Outlet {self.outlet_index}"
             if outlet_label != f"Outlet {self.outlet_index}":
                 name_prefix = f"{name_prefix} {outlet_label}"
-            self._attr_name = f"{name_prefix} {default_name}"
+            return f"{name_prefix} {default_name}"
         else:
-            self._attr_name = default_name
+            return default_name
+
+    @property
+    def unique_id(self) -> str:
+        """Return the entity unique id."""
+        return f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(
+            " ", "-").lower()
+
+    @property
+    def device_info(self) -> dict:
+        """Return device info of the entity."""
+        return self.coordinator.device_info
