@@ -31,8 +31,8 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
             outlet_label = self.outlet.sensor_data['label']
             name_prefix = f"Outlet {self.outlet_index}"
             if outlet_label != f"Outlet {self.outlet_index}":
-                name_prefix = f"{name_prefix} {outlet_label}"
-            return f"{name_prefix} {default_name}"
+                name_prefix = f"{self.coordinator.pdu.name} {name_prefix} {outlet_label}"
+            return f"{self.coordinator.pdu.name} {name_prefix} {default_name}"
         else:
             return default_name
 
