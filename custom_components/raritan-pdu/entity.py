@@ -25,7 +25,9 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
     @property
     def name(self) -> str:
         """Return the name of the entity."""
-        default_name = self.entity_description.key.replace('_', ' ')
+        default_name = self.entity_description.key.replace('_', ' ').lower()
+        default_name = default_name.replace('cpu', 'CPU')  # handle special term
+
         name_prefix = self.coordinator.pdu.name
         _LOGGER.debug(f"description {self.entity_description.key}, {default_name}, {self.entity_description.name}")
         if self.outlet is not None:
