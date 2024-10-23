@@ -28,8 +28,8 @@ class RaritanPDUCoordinator(DataUpdateCoordinator):
             manufacturer=MANUFACTURER,
             identifiers={(DOMAIN, self.pdu.unique_id)},
             name=self.pdu.name,
-            # sw_version=
-            # model=self.pdu.model,
+            sw_version=self.pdu.firmware_version,
+            model=self.pdu.model,
         )
 
     async def _async_update_data(self) -> dict:

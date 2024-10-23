@@ -26,15 +26,16 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
     def name(self) -> str:
         """Return the name of the entity."""
         default_name = self.entity_description.key.replace('_', ' ')
+        name_prefix = self.coordinator.pdu.name
         _LOGGER.debug(f"description {self.entity_description.key}, {default_name}, {self.entity_description.name}")
         if self.outlet is not None:
             outlet_label = self.outlet.sensor_data['label']
-            name_prefix = f"Outlet {self.outlet_index}"
+            name_prefix = f"{name_prefix} Outlet {self.outlet_index}"
             if outlet_label != f"Outlet {self.outlet_index}":
-                name_prefix = f"{self.coordinator.pdu.name} {name_prefix} {outlet_label}"
-            return f"{self.coordinator.pdu.name} {name_prefix} {default_name}"
+                name_prefix = f"{name_prefix} {outlet_label}"
+            return f"{name_prefix} {default_name}"
         else:
-            return default_name
+            return f"{name_prefix} {default_name}"
 
     @property
     def unique_id(self) -> str:

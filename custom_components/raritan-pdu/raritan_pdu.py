@@ -165,6 +165,8 @@ class RaritanPDU:
         self.energy_support = False
         self.outlet_count = 0
         self.cpu_temperature = 0
+        self.firmware_version = ""
+        self.model = ""
         self.outlets: [RaritanPDUOutlet] = []
 
     async def authenticate(self) -> bool:
@@ -186,16 +188,20 @@ class RaritanPDU:
             ["PDU-MIB", "outletEnergySupport", 0],
             ["PDU-MIB", "outletCount", 0],
             ["PDU-MIB", "unitCpuTemp", 0],  # The value for the unit's CPU temperature sensor in tenth degrees celsius.
+            ["PDU-MIB", "firmwareVersion", 0],
+            ["PDU-MIB", "objectName", 0]
         )
 
         if result is None:
             return  # abort update
 
-        [desc, name, energy_support, outlet_count, cpu_temperature] = result
+        [desc, name, energy_support, outlet_count, cpu_temperature, firmware_version, model] = result
 
-        self.name = str(desc).split(" - ")[0] + " " + str(name)
+        self.name = f"{str(desc).split(' - ')[0]} {model} {name}"
         self.energy_support = energy_support == "Yes"
         self.cpu_temperature = cpu_temperature / 10.0  # The value for the unit's CPU temperature sensor in tenth degrees celsius.
+        self.firmware_version = firmware_version
+        self.model = model
 
         # If the outlet count has changed, reinitialize the outlets list. This should only run when first initialized.
         if outlet_count != self.outlet_count:
