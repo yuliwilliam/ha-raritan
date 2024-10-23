@@ -33,7 +33,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class RaritanPDUSwitch(RaritanPDUEntity, SwitchEntity):
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: SwitchEntityDescription, outlet_index: int):
-        super(RaritanPDUEntity, self).__init__(coordinator, description, outlet_index)
+        RaritanPDUEntity.__init__(self, coordinator, description, outlet_index)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the outlet on."""

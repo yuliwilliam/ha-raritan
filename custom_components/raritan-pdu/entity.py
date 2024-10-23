@@ -39,7 +39,7 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
             else:
                 self._attr_name = formatted_description_key
 
-        _LOGGER.info(f"Finish setting up entity {self._attr_unique_id}")
+        _LOGGER.info(f"Finish setting up entity {self.unique_id} {self.name}")
 
     # @property
     # def name(self) -> str:
