@@ -30,14 +30,20 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
             self._attr_name = self.entity_description.name
         else:
             formatted_description_key = self.entity_description.key.replace('_', ' ')
+            _LOGGER.debug(f"1 formatted_description_key: {formatted_description_key}")
+
             if self.outlet is not None:
                 outlet_label = self.outlet.sensor_data['label']
+                _LOGGER.debug(f"2 outlet_label: {outlet_label}")
+
                 name_prefix = f"Outlet {self.outlet_index}"
                 if outlet_label != f"Outlet {self.outlet_index}":
                     name_prefix = f"{name_prefix} {outlet_label}"
+                    _LOGGER.debug(f"4 outlet_label: {outlet_label}")
                 self._attr_name = f"{name_prefix} {formatted_description_key}"
             else:
                 self._attr_name = formatted_description_key
+                _LOGGER.debug(f"3 formatted_description_key: {formatted_description_key}")
 
         _LOGGER.info(f"Finish setting up entity {self.unique_id} {self.name}")
 
