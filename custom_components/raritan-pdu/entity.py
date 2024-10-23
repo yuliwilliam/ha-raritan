@@ -22,56 +22,43 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
         if self.outlet_index > 0:
             self.outlet = self.coordinator.pdu.get_outlet_by_index(self.outlet_index)
 
-        self._attr_device_info = self.coordinator.device_info
-        self._attr_unique_id = f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(
-            " ", "-").lower()
+        # self._attr_device_info = self.coordinator.device_info
+        # self._attr_unique_id = f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(
+        #     " ", "-").lower()
+        #
+        # default_name = self.entity_description.name
+        #
+        # if self.outlet is not None:
+        #     outlet_label = self.outlet.sensor_data['label']
+        #
+        #     name_prefix = f"Outlet {self.outlet_index}"
+        #     if outlet_label != f"Outlet {self.outlet_index}":
+        #         name_prefix = f"{name_prefix} {outlet_label}"
+        #     self._attr_name = f"{name_prefix} {default_name}"
+        # else:
+        #     self._attr_name = default_name
 
-        _LOGGER.debug(f"{self.entity_description.name} {type(self.entity_description)}")
-        if self.entity_description.name is not None:
-            self._attr_name = self.entity_description.name
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        default_name = self.entity_description.name
+        if self.outlet is not None:
+            outlet_label = self.outlet.sensor_data['label']
+
+            name_prefix = f"Outlet {self.outlet_index}"
+            if outlet_label != f"Outlet {self.outlet_index}":
+                name_prefix = f"{name_prefix} {outlet_label}"
+            return f"{name_prefix} {default_name}"
         else:
-            formatted_description_key = self.entity_description.key.replace('_', ' ')
-            _LOGGER.debug(f"1 formatted_description_key: {formatted_description_key}")
+            return default_name
 
-            if self.outlet is not None:
-                outlet_label = self.outlet.sensor_data['label']
-                _LOGGER.debug(f"2 outlet_label: {outlet_label}")
+    @property
+    def unique_id(self) -> str:
+        """Return the entity unique id."""
+        return f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(" ",
+                                                                                                               "-").lower()
 
-                name_prefix = f"Outlet {self.outlet_index}"
-                if outlet_label != f"Outlet {self.outlet_index}":
-                    name_prefix = f"{name_prefix} {outlet_label}"
-                    _LOGGER.debug(f"4 outlet_label: {outlet_label}")
-                self._attr_name = f"{name_prefix} {formatted_description_key}"
-            else:
-                self._attr_name = formatted_description_key
-                _LOGGER.debug(f"3 formatted_description_key: {formatted_description_key}")
-
-        _LOGGER.info(f"Finish setting up entity {self.unique_id} {self.name}")
-
-    # @property
-    # def name(self) -> str:
-    #     """Return the name of the entity."""
-    #     if self.entity_description.name is not None:
-    #         return self.entity_description.name
-    #
-    #     formatted_description_key = self.entity_description.key.replace('_', ' ')
-    #     if self.outlet is not None:
-    #         outlet_label = self.outlet.sensor_data['label']
-    #         name_prefix = f"Outlet {self.outlet_index}"
-    #         if outlet_label != f"Outlet {self.outlet_index}":
-    #             name_prefix = f"{name_prefix} {outlet_label}"
-    #
-    #         return f"{name_prefix} {formatted_description_key}"
-    #     else:
-    #         return formatted_description_key
-    #
-    # @property
-    # def unique_id(self) -> str:
-    #     """Return the entity unique id."""
-    #     return f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(" ",
-    #                                                                                                            "-").lower()
-    #
-    # @property
-    # def device_info(self) -> dict:
-    #     """Return device info of the entity."""
-    #     return self.coordinator.device_info
+    @property
+    def device_info(self) -> dict:
+        """Return device info of the entity."""
+        return self.coordinator.device_info

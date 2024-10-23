@@ -11,7 +11,6 @@ from .coordinator import RaritanPDUCoordinator
 PDU_SWITCH_DESCRIPTIONS = (
     SwitchEntityDescription(
         key="power_switch",
-        name="Power switch",
         device_class=SwitchDeviceClass.OUTLET,
         icon="mdi:power-socket-us",
     ),

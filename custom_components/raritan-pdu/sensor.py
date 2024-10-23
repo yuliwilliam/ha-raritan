@@ -12,7 +12,6 @@ from .const import DOMAIN, _LOGGER
 PDU_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="cpu_temperature",
-        name="CPU temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_unit_of_measurement=UnitOfTemperature.CELSIUS,

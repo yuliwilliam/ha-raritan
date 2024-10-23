@@ -11,7 +11,6 @@ from .coordinator import RaritanPDUCoordinator
 PDU_BUTTON_DESCRIPTIONS = (
     ButtonEntityDescription(
         key="power_cycle",
-        name="Power cycle",
         device_class=ButtonDeviceClass.RESTART,
         icon="mdi:restart",
     ),
