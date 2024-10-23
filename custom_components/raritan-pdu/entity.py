@@ -26,6 +26,7 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
     def name(self) -> str:
         """Return the name of the entity."""
         default_name = self.entity_description.key.replace('_', ' ')
+        _LOGGER.debug(self.entity_description.key, default_name)
         if self.outlet is not None:
             outlet_label = self.outlet.sensor_data['label']
             name_prefix = f"Outlet {self.outlet_index}"
