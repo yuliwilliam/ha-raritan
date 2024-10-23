@@ -28,13 +28,8 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
         if self.outlet_index > 0:
             self.outlet = self.coordinator.pdu.get_outlet_by_index(self.outlet_index)
 
-        self._attr_name = self.get_name()
-
     @property
-    def name(self) -> str | None:
-        return self.get_name()
-
-    def get_name(self) -> str:
+    def name(self) -> str:
         """Return the name of the entity."""
         if self.entity_description.name is not None:
             return self.entity_description.name
@@ -53,7 +48,7 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
     @property
     def unique_id(self) -> str:
         """Return the entity unique id."""
-        return f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}"
+        return f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(" ", "-").lower()
 
     @property
     def device_info(self) -> dict:
