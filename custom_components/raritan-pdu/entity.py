@@ -26,6 +26,7 @@ class RaritanPDUEntity(CoordinatorEntity, Entity):
         self._attr_unique_id = f"{self.coordinator.pdu.name}-outlet-{self.outlet_index}-{self.entity_description.key}".replace(
             " ", "-").lower()
 
+        _LOGGER.debug(f"{self.entity_description.name} {type(self.entity_description)}")
         if self.entity_description.name is not None:
             self._attr_name = self.entity_description.name
         else:
