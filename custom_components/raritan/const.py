@@ -17,4 +17,4 @@ CONF_POLLING_INTERVAL: Final = "polling interval(seconds)"
 
 MIB_SOURCE_DIR: Final = f"./custom_components/{DOMAIN}/mibs"
 
-PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BUTTON]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BUTTON, Platform.TEXT]

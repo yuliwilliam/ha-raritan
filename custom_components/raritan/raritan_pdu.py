@@ -146,6 +146,23 @@ class RaritanPDUOutlet:
 
         self.update_sensor_data({"operational_state": new_operational_state})
 
+    async def set_label(self, label: str):
+        expected_new_label = await self.snmp_manager.snmp_set(
+            [["PDU-MIB", self.get_sensor_oid_from_sensor_name("label"), self.index], label])
+        new_label = ""
+
+        # Wait for the PDU to process
+        start = time.time()
+        while expected_new_label != new_label:
+            await asyncio.sleep(1)
+            new_label = await self.snmp_manager.snmp_get(
+                ["PDU-MIB", self.get_sensor_oid_from_sensor_name("label"), self.index])
+            if time.time() - start > 10:
+                break  # timeout to set state
+
+        self.update_sensor_data({"label": new_label})
+
+
     def is_on(self):
         return self.sensor_data["operational_state"] == "on"
 
