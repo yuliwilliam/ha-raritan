@@ -1,6 +1,5 @@
 import asyncio
 import os
-import threading
 from pathlib import Path
 from pysnmp.entity.engine import SnmpEngine
 from pysnmp.hlapi.v3arch import get_cmd, CommunityData, UdpTransportTarget, ContextData, ObjectIdentity, ObjectType, \
@@ -19,46 +18,25 @@ class SNMPManager:
         self.write_community = write_community
 
         self.modules_loaded = False
-        self.modules_lock = threading.Lock()
-        self.mib_view_controller = None
 
     def load_mib_modules(self):
-        with self.modules_lock:
-            if self.modules_loaded:
-                return
+        if self.modules_loaded:
+            return
 
-            if not Path(MIB_SOURCE_DIR).is_dir():
-                _LOGGER.error(f"mibs directory does not exist: {MIB_SOURCE_DIR}, cwd: {os.getcwd()}")
+        if not Path(MIB_SOURCE_DIR).is_dir():
+            _LOGGER.error(f"mibs directory does not exist: {MIB_SOURCE_DIR}, cwd: {os.getcwd()}")
 
-            mib_builder = builder.MibBuilder()
-            mib_builder.add_mib_sources(builder.DirMibSource(MIB_SOURCE_DIR))
-            compiler.add_mib_compiler(mib_builder, sources=[MIB_SOURCE_DIR])
-            mib_builder.loadModules(*MIB_MODULES)
-            self.mib_view_controller = view.MibViewController(mib_builder)
-            self.modules_loaded = True
-
-    def build_get_object_types(self, oids: any) -> list:
-        return [
-            ObjectType(ObjectIdentity(*oid)).resolve_with_mib(self.mib_view_controller)
-            for oid in oids
-        ]
-
-    def build_set_object_types(self, oids_and_values: any) -> list:
-        return [
-            ObjectType(ObjectIdentity(*oid), value).resolve_with_mib(self.mib_view_controller)
-            for oid, value in oids_and_values
-        ]
-
-    def resolve_var_binds(self, var_binds: any) -> list:
-        return [
-            var_bind.resolve_with_mib(self.mib_view_controller)
-            for var_bind in var_binds
-        ]
+        mib_builder = builder.MibBuilder()
+        mib_builder.add_mib_sources(builder.DirMibSource(MIB_SOURCE_DIR))
+        compiler.add_mib_compiler(mib_builder, sources=[MIB_SOURCE_DIR])
+        mib_builder.loadModules(*MIB_MODULES)
+        mib_view_controller = view.MibViewController(mib_builder)
+        self.modules_loaded = True
 
     def parse_var_binds(self, var_binds: any) -> list:
         results = []
         for var_bind in var_binds:
-            val = var_bind[1].prettyPrint()
+            val = var_bind.prettyPrint().split('=')[1].strip()
             if val.isdigit():
                 results.append(int(val))
             elif val.isdecimal():
@@ -81,14 +59,13 @@ class SNMPManager:
         if not self.modules_loaded:
             self.load_mib_modules()
 
-        oid_objects = self.build_get_object_types(oids)
+        oid_objects = [ObjectType(ObjectIdentity(*oid)) for oid in oids]
         error_indication, error_status, error_index, var_binds = await get_cmd(
             SnmpEngine(),
             CommunityData(self.read_community),
             await UdpTransportTarget.create((self.host, self.port), timeout=5, retries=1),
             ContextData(),
-            *oid_objects,
-            lookupMib=False
+            *oid_objects
         )
 
         _LOGGER.debug(f"SNMP get: {self.host}:{self.port} {self.read_community} {oids} "
@@ -106,7 +83,6 @@ class SNMPManager:
             )
             return None
 
-        var_binds = self.resolve_var_binds(var_binds)
         results = self.parse_var_binds(var_binds)
 
         if len(results) == 1:
@@ -128,7 +104,7 @@ class SNMPManager:
             self.load_mib_modules()
 
         # Prepare the OID objects with values to set
-        oid_objects = self.build_set_object_types(oids_and_values)
+        oid_objects = [ObjectType(ObjectIdentity(*oid), value) for oid, value in oids_and_values]
 
         # Send the SNMP set command
         error_indication, error_status, error_index, var_binds = await set_cmd(
@@ -136,8 +112,7 @@ class SNMPManager:
             CommunityData(self.write_community),
             await UdpTransportTarget.create((self.host, self.port), timeout=5, retries=1),
             ContextData(),
-            *oid_objects,
-            lookupMib=False
+            *oid_objects
         )
 
         _LOGGER.debug(f"SNMP set: {self.host}:{self.port} {self.write_community} {oids_and_values} "
@@ -157,7 +132,6 @@ class SNMPManager:
             return None
 
         # Parse and return the results from var_binds
-        var_binds = self.resolve_var_binds(var_binds)
         results = self.parse_var_binds(var_binds)
 
         if len(results) == 1:
