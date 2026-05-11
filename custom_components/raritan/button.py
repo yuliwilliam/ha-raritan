@@ -24,12 +24,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities = []
     for outlet in coordinator.pdu.outlets:
         for description in PDU_BUTTON_DESCRIPTIONS:
-            entities.append(RaritanPDUSwitch(coordinator, description, outlet.index))
+            entities.append(RaritanPDUButton(coordinator, description, outlet.index))
 
     async_add_entities(entities)
 
 
-class RaritanPDUSwitch(RaritanPDUEntity, ButtonEntity):
+class RaritanPDUButton(RaritanPDUEntity, ButtonEntity):
 
     def __init__(self, coordinator: RaritanPDUCoordinator, description: ButtonEntityDescription, outlet_index: int):
         RaritanPDUEntity.__init__(self, coordinator, description, outlet_index)
