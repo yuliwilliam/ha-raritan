@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from homeassistant.const import CONNECTION_NETWORK_MAC
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -46,7 +46,7 @@ class RaritanPDUCoordinator(DataUpdateCoordinator):
             device_info["serial_number"] = self.pdu.serial_number
 
         if self.pdu.mac_address:
-            device_info["connections"] = {(CONNECTION_NETWORK_MAC, self.pdu.mac_address)}
+            device_info["connections"] = {(dr.CONNECTION_NETWORK_MAC, self.pdu.mac_address)}
 
         if self.pdu.ip_address and self.pdu.ip_address != "0.0.0.0":
             device_info["configuration_url"] = f"http://{self.pdu.ip_address}"
