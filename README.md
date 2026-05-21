@@ -11,6 +11,7 @@ each outlet as Home Assistant entities for monitoring and control.
 - Adds one text entity per outlet for reading and changing the outlet label.
 - Adds outlet sensors for current, voltage, active power, power factor, and estimated delivered energy.
 - Adds a PDU CPU temperature sensor.
+- Adds device information for model type, firmware, hardware revision, serial number, MAC address, and device URL.
 - Restores the estimated delivered energy sensor after Home Assistant restarts.
 - Supports config entry reconfiguration from the Home Assistant UI.
 

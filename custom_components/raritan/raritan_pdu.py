@@ -176,6 +176,7 @@ class RaritanPDUOutlet:
 class RaritanPDU:
     def __init__(self, host: str, port: int, read_community: str, write_community: str) -> None:
         """Initialize."""
+        self.host = host
         self.unique_id = f"{host}:{port}, read community: {read_community}, write community: {write_community}"
         self.snmp_manager: SNMPManager = SNMPManager(host, port, read_community, write_community)
         self.name = ""
@@ -183,8 +184,20 @@ class RaritanPDU:
         self.outlet_count = 0
         self.cpu_temperature = 0
         self.firmware_version = ""
+        self.hardware_version = ""
+        self.ip_address = ""
+        self.mac_address = ""
         self.model = ""
+        self.object_name = ""
+        self.serial_number = ""
         self.outlets: [RaritanPDUOutlet] = []
+
+    def normalize_mac_address(self, mac_address: any) -> str:
+        """Normalize an SNMP MAC value for Home Assistant device connections."""
+        mac_address = str(mac_address).strip().lower()
+        if mac_address.startswith("0x") and len(mac_address) == 14:
+            mac_address = ":".join(mac_address[index:index + 2] for index in range(2, 14, 2))
+        return mac_address
 
     async def authenticate(self) -> bool:
         """Test if we can authenticate with the host."""
@@ -206,19 +219,40 @@ class RaritanPDU:
             ["PDU-MIB", "outletCount", 0],
             ["PDU-MIB", "unitCpuTemp", 0],  # The value for the unit's CPU temperature sensor in tenth degrees celsius.
             ["PDU-MIB", "firmwareVersion", 0],
+            ["PDU-MIB", "serialNumber", 0],
+            ["PDU-MIB", "ipAddress", 0],
+            ["PDU-MIB", "mac", 0],
+            ["PDU-MIB", "hardwareRev", 0],
             ["PDU-MIB", "objectName", 0]
         )
 
         if result is None:
             return  # abort update
 
-        [desc, name, energy_support, outlet_count, cpu_temperature, firmware_version, model] = result
+        [
+            desc,
+            name,
+            energy_support,
+            outlet_count,
+            cpu_temperature,
+            firmware_version,
+            serial_number,
+            ip_address,
+            mac_address,
+            hardware_version,
+            object_name,
+        ] = result
 
-        self.name = f"{str(desc).split(' - ')[0]} {model} {name}"
+        self.name = f"{str(desc).split(' - ')[0]} {object_name} {name}"
         self.energy_support = energy_support == "Yes"
         self.cpu_temperature = cpu_temperature / 10.0  # The value for the unit's CPU temperature sensor in tenth degrees celsius.
         self.firmware_version = firmware_version
-        self.model = model
+        self.hardware_version = str(hardware_version)
+        self.ip_address = str(ip_address)
+        self.mac_address = self.normalize_mac_address(mac_address)
+        self.object_name = str(object_name)
+        self.model = self.object_name
+        self.serial_number = str(serial_number)
 
         # If the outlet count has changed, reinitialize the outlets list. This should only run when first initialized.
         if outlet_count != self.outlet_count:
